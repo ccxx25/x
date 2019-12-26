@@ -2,7 +2,7 @@ if ($response.statusCode == 200) {
         if ($request.url.endsWith("account-status")) {
 
             $done({body: JSON.stringify({
-  "expirationDate": 1893427199000,
+  "expirationDate": 4102415999,
   "startDate": 1546272000000,
   "subscriptionPlan": "com.bloombuilt.dayoneios.subscription.premium.yearly_discounted_trial",
   "lastRenewalDate": 1546531200000,
