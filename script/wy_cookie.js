@@ -1,3 +1,12 @@
+
+
+/*
+浏览器访问并登录: https://music.163.com/m/login
+ 再用浏览器访问下: http://music.163.com 
+ QuanX提示: Cookie [网易云音乐] 写入成功
+ 最后就可以把第 1 条脚本注释掉了
+ */
+
 if ($request.headers["Cookie"]) {
   var headerWY = $request.headers["Cookie"];
   var cookie = $prefs.setValueForKey(headerWY, "CookieWY");
