@@ -8,7 +8,7 @@ hostname = tieba.baidu.com
 配置完毕后,请关闭然后再打开qx,然后手机访问https://tieba.baidu.com ,等待弹出cookie写入成功提示后即可
  */
 var cookieVal = $prefs.valueForKey("CookieTB");
-var singleNotifyCount = 20; //想签到几个汇总到一个通知里,这里就填几个(比如我有13个要签到的,这里填了5,就会分三次消息通知过去)
+var singleNotifyCount = 30; //想签到几个汇总到一个通知里,这里就填几个(比如我有13个要签到的,这里填了5,就会分三次消息通知过去)
 var process = {
     total: 0,
     result: [
