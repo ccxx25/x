@@ -3,8 +3,8 @@
 0 9 * * * sign_baidu_tieba_v2.js
  */
 var cookieVal = $prefs.valueForKey("CookieTB");
-var useParallel = 1; //0自动切换,1串行,2并行(当贴吧数量大于30个以后,并行可能会导致QX崩溃,所以您可以自动切换)
-var singleNotifyCount = 30; //想签到几个汇总到一个通知里,这里就填几个(比如我有13个要签到的,这里填了5,就会分三次消息通知过去)
+var useParallel = 0; //0自动切换,1串行,2并行(当贴吧数量大于30个以后,并行可能会导致QX崩溃,所以您可以自动切换)
+var singleNotifyCount = 20; //想签到几个汇总到一个通知里,这里就填几个(比如我有13个要签到的,这里填了5,就会分三次消息通知过去)
 var process = {
     total: 0,
     result: [
@@ -55,7 +55,9 @@ function signTieBa() {
             if (useParallel == 1 || (useParallel == 0 && body.data.like_forum.length >= 30)) {
                 signBars(body.data.like_forum, body.data.tbs, 0);
             } else {
-                signBar(bar, body.data.tbs);
+            for (const bar of body.data.like_forum) {
+                    signBar(bar, body.data.tbs);
+                }
             }
         } else {
             $notify("贴吧签到", "签到失败", "请确认您有关注的贴吧");
