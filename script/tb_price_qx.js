@@ -29,8 +29,8 @@ if (true) {
                 const result = history_price_item(data.single)
                 const tbitems = result[1]
                 service.items = service.items.concat(nonService.items)
-                historyItem.desc = lower_price[0]
-                historyItem.title = lower_price[1]
+																																																								                historyItem.desc = lower_price[0]
+		                historyItem.title = lower_price[1]
                 service.items.unshift(historyItem)
                 nonService.title = "价格走势"
                 nonService.items = tbitems
@@ -56,7 +56,7 @@ function lower_price_msg(data) {
     const lower2 = "历史最低¥" + String(lower)
     return [lower1,lower2];
 }
-
+	
 function history_price_item(data) {
     const rex_match = /\[.*?\]/g;
     const rex_exec = /\[(.*),(.*),"(.*)"\]/;
