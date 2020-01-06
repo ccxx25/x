@@ -1,28 +1,10 @@
 /*
-
-TieBa Daily bonus
-
-The script is made by @wechatu
-
-Description :
-When TieBa app is opened, click "My", If notification gets cookie success, you can use the check in script. because script will automatically judgment whether the cookie is updated, so you dont need to disable it manually.
-
-script will be performed every day at 9 am. You can modify the execution time.
-Note that the following config is only a local script configuration, please put both scripts into Quantumult X/Script, and the cookie script only works for TieBa apps in china apple store
-
-[rewrite_local]
-# Get TieBa cookie
-https?:\/\/c\.tieba\.baidu\.com\/c\/s\/login url script-response-body TieBa_GetCookie_QX.js
-
-# MITM = c.tieba.baidu.com
-
 [task_local]
-0 9 * * * TieBa_DailyBonus_QX.js
-
-*/
+0 9 * * * sign_baidu_tieba_v2.js
+ */
 var cookieVal = $prefs.valueForKey("CookieTB");
 var useParallel = 0; //0自动切换,1串行,2并行(当贴吧数量大于30个以后,并行可能会导致QX崩溃,所以您可以自动切换)
-var singleNotifyCount = 30; //想签到几个汇总到一个通知里,这里就填几个(比如我有13个要签到的,这里填了5,就会分三次消息通知过去)
+var singleNotifyCount = 35; //想签到几个汇总到一个通知里,这里就填几个(比如我有13个要签到的,这里填了5,就会分三次消息通知过去)
 var process = {
     total: 0,
     result: [
@@ -73,9 +55,7 @@ function signTieBa() {
             if (useParallel == 1 || (useParallel == 0 && body.data.like_forum.length >= 30)) {
                 signBars(body.data.like_forum, body.data.tbs, 0);
             } else {
-            for (const bar of body.data.like_forum) {
-                    signBar(bar, body.data.tbs);
-                }
+                signBar(bar, body.data.tbs);
             }
         } else {
             $notify("贴吧签到", "签到失败", "请确认您有关注的贴吧");
