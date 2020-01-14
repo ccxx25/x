@@ -1,5 +1,5 @@
 let phone = '15333013190';//您的手机号
-
+回老家了
 function sign_10000() {
     let cookieVal = $prefs.valueForKey("cookie.10000");
     if (!cookieVal) {
