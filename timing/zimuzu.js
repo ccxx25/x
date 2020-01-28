@@ -1,5 +1,5 @@
 const cookieName = '字幕组'
-const cookieKey = 'chavy_cookie_zimuzu'
+const cookieKey = 'chavy_cookie_rrys'
 const chavy = init()
 const cookieVal = chavy.getdata(cookieKey)
 
@@ -7,7 +7,7 @@ sign()
 
 function sign() {
   const timestamp = Date.parse(new Date())
-  let url = { url: `http://www.zmz2019.com/user/login/getCurUserTopInfo`, headers: { Cookie: cookieVal } }
+  let url = { url: `http://www.rrys2019.com/user/login/getCurUserTopInfo`, headers: { Cookie: cookieVal } }
   url.headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_2) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.4 Safari/605.1.15'
 
   chavy.get(url, (error, response, data) => {

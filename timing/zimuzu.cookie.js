@@ -1,5 +1,5 @@
 const cookieName = '字幕组'
-const cookieKey = 'chavy_cookie_zimuzu'
+const cookieKey = 'chavy_cookie_rrys'
 const chavy = init()
 const cookieVal = $request.headers['Cookie']
 if (cookieVal) {
