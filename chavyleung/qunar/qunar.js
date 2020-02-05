@@ -1,22 +1,34 @@
-/**
- * Cookie 心跳
- * 尝试每2小时运行一次本脚本来保持Cookie的活性 (效果待验证)
- */
-
-const cookieName = '腾讯视频'
-const cookieKey = 'chavy_cookie_videoqq'
+const cookieName = '去哪儿'
+const cookieKey = 'chavy_cookie_qunar'
 const chavy = init()
-const cookieVal = chavy.getdata(cookieKey)
+const cookieVal = JSON.parse(chavy.getdata(cookieKey))
 
-keep()
+sign()
 
-function keep() {
-  const timestamp = Date.parse(new Date())
-  let url = { url: `https://vip.video.qq.com/fcgi-bin/comm_cgi?name=spp_PropertyNum&cmd=1&growth_value=1&otype=json&_=${timestamp}`, headers: { Cookie: cookieVal } }
-  url.headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_2) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.4 Safari/605.1.15'
-  chavy.get(url, (error, response, data) => {
-    chavy.log(`[${cookieName} 心跳], data: ${data}`)
+function sign() {
+  let url = { url: `https://user.qunar.com/webapi/member/signNewIndex.htm`, headers: cookieVal }
+  url.body = `channel=app&platform=ios`
+  chavy.post(url, (error, response, data) => {
+    chavy.log(`${cookieName}, data: ${data}`)
+    let result = JSON.parse(data)
+    const title = `${cookieName}`
+    let subTitle = ``
+    let detail = ``
+    if (result.errcode == 200) {
+      if (result.data.modalInfo.title) {
+        subTitle = '签到结果: 成功'
+        detail = `${result.data.unit}: ${result.data.total}个, 连签: ${result.data.continuous}天, 说明: ${result.data.modalInfo.title}`
+      } else {
+        subTitle = '签到结果: 成功 (重复签到)'
+        detail = `${result.data.unit}: ${result.data.total}个, 连签: ${result.data.continuous}天`
+      }
+    } else {
+      subTitle = '签到结果: 失败'
+      detail = `编码: ${result.errcode}, 说明: ${result.errmsg}`
+    }
+    chavy.msg(title, subTitle, detail)
   })
+
   chavy.done()
 }
 
