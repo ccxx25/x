@@ -5,7 +5,7 @@ Create At 2020-02-05
 
 USAGE：
 1. 关闭QX[close qx]
-2. 打开https://yuba.douyu.com并登陆[open url and login]
+2. 打开https://yuba.douyu.com/homepage/hotwbs并登陆[open url and login]
 3. 打开QX，刷新页面，提示[获取鱼吧关注列表]。[open qx, refresh page]
 [task_local]
 1 0 * * * path/yubaSign.js
