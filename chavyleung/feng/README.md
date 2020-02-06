@@ -6,6 +6,10 @@
 
 > 2020.1.11 QuanX 在`190`版本开始, 获取 Cookie 方式需要从`script-response-body`改为`script-request-header`
 
+> 2020.2.6 威锋加了验证, 弃坑
+
+> 2020.2.7 恢复签到
+
 ## 配置 (Surge)
 
 ```properties
