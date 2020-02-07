@@ -20,14 +20,6 @@ if ($request.headers.Host == 'h5.rrhuodong.com') {
   }
 }
 
-const chavy = init()
-const cookieVal = $request.headers['Cookie']
-if (cookieVal) {
-  if (chavy.setdata(cookieVal, cookieKey)) {
-    chavy.msg(`${cookieName}`, '获取Cookie: 成功', '')
-    chavy.log(`[${cookieName}] 获取Cookie: 成功, cookie: ${cookieVal}`)
-  }
-}
 function init() {
   isSurge = () => {
     return undefined === this.$httpClient ? false : true
