@@ -1,5 +1,5 @@
 const cookieName = '字幕组'
-const cookieKey = 'chavy_cookie_rrys'
+const cookieKey = 'chavy_cookie_zimuzu'
 const chavy = init()
 const cookieVal = chavy.getdata(cookieKey)
 
@@ -19,7 +19,7 @@ function sign() {
     if (result.status == 1) {
       if (result.data.new_login) subTitle = '签到结果: 成功'
       else subTitle = '签到结果: 成功 (重复签到)'
-      detail = `人人钻: ${result.data.userinfo.point}, 登录天数: ${result.data.usercount.cont_login} -> ${result.data.upgrade_day}`
+      detail = `人人钻: ${result.data.userinfo.point}, 登录天数: ${result.data.usercount.cont_login}`
       chavy.msg(title, subTitle, detail)
     } else {
       subTitle = '签到结果: 未知'
