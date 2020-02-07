@@ -6,17 +6,14 @@
 
 > 2020.1.28 适配人人影视新域名`http://www.rrys2019.com`
 
-> 2020.2.8 双端签到 (增加 APP 签到)
-
 ## 配置 (Surge)
 
 ```properties
 [MITM]
-*.rrys2019.com, h5.rrhuodong.com
+*.rrys2019.com
 
 [Script]
 http-request ^https?:\/\/(www\.)?rrys2019\.com\/?.? script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/zimuzu/zimuzu.cookie.js
-http-request ^https?:\/\/h5.rrhuodong.com\/index.php.*m=clock script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/zimuzu/zimuzu.cookie.js
 cron "10 0 0 * * *" script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/zimuzu/zimuzu.js
 ```
 
@@ -24,7 +21,6 @@ cron "10 0 0 * * *" script-path=https://raw.githubusercontent.com/chavyleung/scr
 
 ```properties
 [MITM]
-*.rrys2019.com, h5.rrhuodong.com
 
 [rewrite_local]
 # 189及以前版本
@@ -38,10 +34,10 @@ cron "10 0 0 * * *" script-path=https://raw.githubusercontent.com/chavyleung/scr
 1 0 * * * zimuzu.js
 ```
 
-## 说明 (网页)
+## 说明
 
 1. 先在浏览器登录 `(先登录! 先登录! 先登录!)`
-2. 先把`*.rrys2019.com, h5.rrhuodong.com`加到`[MITM]`
+2. 先把`*.rrys2019.com`加到`[MITM]`
 3. 再配置重写规则:
    - Surge: 把两条远程脚本放到`[Script]`
    - QuanX: 把`zimuzu.cookie.js`和`zimuzu.js`传到`On My iPhone - Quantumult X - Scripts` (传到 iCloud 相同目录也可, 注意要打开 quanx 的 iCloud 开关)
