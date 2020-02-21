@@ -2,7 +2,7 @@
 README：https://github.com/yichahucha/surge/tree/master
  */
 
-const $tool = tool()
+const $tool = new Tool()
 const $base64 = new Base64()
 const consoleLog = false
 const url = $request.url
@@ -36,7 +36,7 @@ if (url.indexOf(path2) != -1) {
         if (data) {
             if (data.ok == 1 && data.single) {
                 const lower = lowerMsgs(data.single)
-                const detail = listPriceDetail(data.PriceRemark.ListPriceDetail)
+                const detail = priceSummary(data)
                 const tip = data.PriceRemark.Tip + "（仅供参考）"
                 $tool.notify("", "", `${lower} ${tip}\n${detail}\n\n👉查看详情：http://tool.manmanbuy.com/historyLowest.aspx?url=${encodeURI(shareUrl)}`)
             }
@@ -54,8 +54,11 @@ function lowerMsgs(data) {
     return lowerMsg
 }
 
-function listPriceDetail(list) {
-    let listPriceDetail = ""
+function priceSummary(data) {
+    let summary = ""
+    let listPriceDetail = data.PriceRemark.ListPriceDetail
+    listPriceDetail.pop()
+    let list = listPriceDetail.concat(historySummary(data.single))
     list.forEach((item, index) => {
         if (index == 2) {
             item.Name = "双十一价格"
@@ -63,13 +66,64 @@ function listPriceDetail(list) {
             item.Name = "六一八价格"
         } else if (index == 4) {
             item.Name = "三十天最低"
-        } else if (index == 5) {
-            item.Name = "三十天平均"
         }
-        const priceDetail = `${item.Name}   ${item.Price}   ${item.Date}   ${item.Difference}`
-        listPriceDetail += `\n${priceDetail}`
+        summary += `\n${item.Name}   ${item.Price}   ${item.Date}   ${item.Difference}`
     })
-    return listPriceDetail
+    return summary
+}
+
+function historySummary(single) {
+    const rexMatch = /\[.*?\]/g;
+    const rexExec = /\[(.*),(.*),"(.*)"\]/;
+    let currentPrice, lowest60, lowest180, lowest360
+    let list = single.jiagequshiyh.match(rexMatch);
+    list = list.reverse().slice(0, 360);
+    list.forEach((item, index) => {
+        if (item.length > 0) {
+            const result = rexExec.exec(item);
+            const dateUTC = new Date(eval(result[1]));
+            const date = dateUTC.format("yyyy-MM-dd");
+            let price = parseFloat(result[2]);
+            if (index == 0) {
+                currentPrice = price
+                lowest60 = { Name: "六十天最低", Price: `¥${String(price)}`, Date: date, Difference: difference(currentPrice, price), price }
+                lowest180 = { Name: "一百八最低", Price: `¥${String(price)}`, Date: date, Difference: difference(currentPrice, price), price }
+                lowest360 = { Name: "三百六最低", Price: `¥${String(price)}`, Date: date, Difference: difference(currentPrice, price), price }
+            }
+            if (index < 60 && price <= lowest60.price) {
+                lowest60.price = price
+                lowest60.Price = `¥${String(price)}`
+                lowest60.Date = date
+                lowest60.Difference = difference(currentPrice, price)
+            }
+            if (index < 180 && price <= lowest180.price) {
+                lowest180.price = price
+                lowest180.Price = `¥${String(price)}`
+                lowest180.Date = date
+                lowest180.Difference = difference(currentPrice, price)
+            }
+            if (index < 360 && price <= lowest360.price) {
+                lowest360.price = price
+                lowest360.Price = `¥${String(price)}`
+                lowest360.Date = date
+                lowest360.Difference = difference(currentPrice, price)
+            }
+        }
+    });
+    return [lowest60, lowest180, lowest360];
+}
+
+function difference(currentPrice, price) {
+    let difference = strip(currentPrice - price)
+    if (difference == 0) {
+        return "-"
+    } else {
+        return `${difference > 0 ? "↑" : "↓"}${String(difference)}`
+    }
+}
+
+function strip(num, precision = 12) {
+    return +parseFloat(num.toPrecision(precision));
 }
 
 function requestPrice(share_url, callback) {
@@ -79,15 +133,15 @@ function requestPrice(share_url, callback) {
             "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
             "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 13_1_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 - mmbWebBrowse - ios"
         },
-        body: "methodName=getHistoryTrend&p_url=" + encodeURIComponent("http://m.manmanbuy.com/redirect.aspx?webid=1&tourl=" + share_url)
+        body: "methodName=getHistoryTrend&p_url=" + encodeURIComponent(share_url)
     }
     $tool.post(options, function (error, response, data) {
         if (!error) {
             callback(JSON.parse(data));
-            if (consolelog) console.log("Data:\n" + data);
+            if (consoleLog) console.log("Data:\n" + data);
         } else {
             callback(null, null);
-            if (consolelog) console.log("Error:\n" + error);
+            if (consoleLog) console.log("Error:\n" + error);
         }
     })
 }
@@ -132,44 +186,61 @@ Date.prototype.format = function (fmt) {
     return fmt;
 }
 
-function tool() {
-    const isSurge = typeof $httpClient != "undefined"
-    const isQuanX = typeof $task != "undefined"
-    const notify = (title, subtitle, message) => {
-        if (isQuanX) $notify(title, subtitle, message)
-        if (isSurge) $notification.post(title, subtitle, message)
+function Tool() {
+    _node = (() => {
+        if (typeof require == "function") {
+            const request = require('request')
+            return ({ request })
+        } else {
+            return (null)
+        }
+    })()
+    _isSurge = typeof $httpClient != "undefined"
+    _isQuanX = typeof $task != "undefined"
+    this.isSurge = _isSurge
+    this.isQuanX = _isQuanX
+    this.isResponse = typeof $response != "undefined"
+    this.notify = (title, subtitle, message) => {
+        if (_isQuanX) $notify(title, subtitle, message)
+        if (_isSurge) $notification.post(title, subtitle, message)
+        if (_node) console.log(JSON.stringify({ title, subtitle, message }));
     }
-    const setCache = (value, key) => {
-        if (isQuanX) return $prefs.setValueForKey(value, key)
-        if (isSurge) return $persistentStore.write(value, key)
+    this.write = (value, key) => {
+        if (_isQuanX) return $prefs.setValueForKey(value, key)
+        if (_isSurge) return $persistentStore.write(value, key)
     }
-    const getCache = (key) => {
-        if (isQuanX) return $prefs.valueForKey(key)
-        if (isSurge) return $persistentStore.read(key)
+    this.read = (key) => {
+        if (_isQuanX) return $prefs.valueForKey(key)
+        if (_isSurge) return $persistentStore.read(key)
     }
-    const get = (options, callback) => {
-        if (isQuanX) {
+    this.get = (options, callback) => {
+        if (_isQuanX) {
             if (typeof options == "string") options = { url: options }
             options["method"] = "GET"
-            $task.fetch(options).then(response => {
-                response["status"] = response.statusCode
-                callback(null, response, response.body)
-            }, reason => callback(reason.error, null, null))
+            $task.fetch(options).then(response => { callback(null, _status(response), response.body) }, reason => callback(reason.error, null, null))
         }
-        if (isSurge) $httpClient.get(options, callback)
+        if (_isSurge) $httpClient.get(options, (error, response, body) => { callback(error, _status(response), body) })
+        if (_node) _node.request(options, (error, response, body) => { callback(error, _status(response), body) })
     }
-    const post = (options, callback) => {
-        if (isQuanX) {
+    this.post = (options, callback) => {
+        if (_isQuanX) {
             if (typeof options == "string") options = { url: options }
             options["method"] = "POST"
-            $task.fetch(options).then(response => {
-                response["status"] = response.statusCode
-                callback(null, response, response.body)
-            }, reason => callback(reason.error, null, null))
+            $task.fetch(options).then(response => { callback(null, _status(response), response.body) }, reason => callback(reason.error, null, null))
         }
-        if (isSurge) $httpClient.post(options, callback)
+        if (_isSurge) $httpClient.post(options, (error, response, body) => { callback(error, _status(response), body) })
+        if (_node) _node.request.post(options, (error, response, body) => { callback(error, _status(response), body) })
     }
-    return { isQuanX, isSurge, notify, setCache, getCache, get, post }
+    _status = (response) => {
+        if (response) {
+            if (response.status) {
+                response["statusCode"] = response.status
+            } else if (response.statusCode) {
+                response["status"] = response.statusCode
+            }
+        }
+        return response
+    }
 }
 
 function Base64() {
