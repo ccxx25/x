@@ -1,5 +1,3 @@
-[Issue Group](http://t.me/scriptgroup)
-
 # Surge
 Remove weibo ads
 ```
@@ -32,6 +30,15 @@ hostname = api.m.jd.com
 
 Display taobao historical price（提供两种方式，根据需求二选一）
 ```
+# 使用脚本删除对应 IP，不生效或失效的需要卸载 tb 重装，注意不开脚本进 tb 会失效
+[Script]
+http-response ^https?://amdc\.m\.taobao\.com/amdc/mobileDispatch requires-body=1,script-path=https://raw.githubusercontent.com/yichahucha/surge/master/tb_price.js
+http-response ^https://trade-acs\.m\.taobao\.com/gw/mtop\.taobao\.detail\.getdetail requires-body=1,script-path=https://raw.githubusercontent.com/yichahucha/surge/master/tb_price.js
+[MITM]
+hostname = trade-acs.m.taobao.com,amdc.m.taobao.com
+```
+
+```
 # 使用规则屏蔽指定 IP 段，有可能误伤其他功能或者应用，可以自己抓包缩小 IP 范围，随时生效
 [Rule]
 IP-CIDR, 203.119.144.0/23, REJECT, no-resolve
@@ -39,15 +46,6 @@ IP-CIDR, 203.119.175.0/24, REJECT, no-resolve
 IP-CIDR, 106.11.162.0/24, REJECT, no-resolve
 IP-CIDR, 47.102.83.0/24, REJECT, no-resolve
 [Script]
-http-response ^https://trade-acs\.m\.taobao\.com/gw/mtop\.taobao\.detail\.getdetail requires-body=1,script-path=https://raw.githubusercontent.com/yichahucha/surge/master/tb_price.js
-[MITM]
-hostname = trade-acs.m.taobao.com,amdc.m.taobao.com
-```
-
-```
-# 使用脚本删除对应 IP，不生效或失效的需要卸载 tb 重装，注意不开脚本进 tb 会失效
-[Script]
-http-response ^https?://amdc\.m\.taobao\.com/amdc/mobileDispatch requires-body=1,script-path=https://raw.githubusercontent.com/yichahucha/surge/master/tb_price.js
 http-response ^https://trade-acs\.m\.taobao\.com/gw/mtop\.taobao\.detail\.getdetail requires-body=1,script-path=https://raw.githubusercontent.com/yichahucha/surge/master/tb_price.js
 [MITM]
 hostname = trade-acs.m.taobao.com,amdc.m.taobao.com
@@ -89,6 +87,15 @@ hostname = api.m.jd.com
 
 Display taobao historical price（提供两种方式，根据需求二选一）
 ```
+# 使用脚本删除对应 IP，不生效或失效的需要卸载 tb 重装，注意不开脚本进 tb 会失效
+[rewrite_local]
+^https?://amdc\.m\.taobao\.com/amdc/mobileDispatch url script-response-body tb_price.js
+^https://trade-acs\.m\.taobao\.com/gw/mtop\.taobao\.detail\.getdetail url script-response-body tb_price.js
+[mitm]
+hostname = trade-acs.m.taobao.com,amdc.m.taobao.com
+```
+
+```
 # 使用规则屏蔽指定 IP 段，有可能误伤其他功能或者应用，可以自己抓包缩小 IP 范围，随时生效
 [filter_local]
 ip-cidr, 203.119.144.0/23, reject
@@ -101,17 +108,10 @@ ip-cidr, 47.102.83.0/24, reject
 hostname = trade-acs.m.taobao.com,amdc.m.taobao.com
 ```
 
-```
-# 使用脚本删除对应 IP，不生效或失效的需要卸载 tb 重装，注意不开脚本进 tb 会失效
-[rewrite_local]
-^https?://amdc\.m\.taobao\.com/amdc/mobileDispatch url script-response-body tb_price.js
-^https://trade-acs\.m\.taobao\.com/gw/mtop\.taobao\.detail\.getdetail url script-response-body tb_price.js
-[mitm]
-hostname = trade-acs.m.taobao.com,amdc.m.taobao.com
-```
-
 Daily work check-in reminder
 ```
 [task_local]
 0 9,18 * * 1-5 check_in.js
 ```
+
+[Issue Group](http://t.me/scriptgroup)

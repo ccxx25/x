@@ -2,7 +2,7 @@
 README：https://github.com/yichahucha/surge/tree/master
  */
 
-const $tool = tool()
+const $tool = new Tool()
 const consoleLog = false;
 const imdbApikeyCacheKey = "IMDbApikey";
 const netflixTitleCacheKey = "NetflixTitle";
@@ -24,7 +24,7 @@ if (!$tool.isResponse) {
     $done({ url });
 } else {
     var IMDbApikeys = IMDbApikeys();
-    var IMDbApikey = $tool.getCache(imdbApikeyCacheKey);
+    var IMDbApikey = $tool.read(imdbApikeyCacheKey);
     if (!IMDbApikey) updateIMDbApikey();
     let obj = JSON.parse($response.body);
     if (consoleLog) console.log("Netflix Original Body:\n" + $response.body);
@@ -67,13 +67,13 @@ if (!$tool.isResponse) {
 }
 
 function getTitleMap() {
-    const map = $tool.getCache(netflixTitleCacheKey);
+    const map = $tool.read(netflixTitleCacheKey);
     return map ? JSON.parse(map) : {};
 }
 
 function setTitleMap(id, title, map) {
     map[id] = title;
-    $tool.setCache(JSON.stringify(map), netflixTitleCacheKey);
+    $tool.write(JSON.stringify(map), netflixTitleCacheKey);
 }
 
 function requestDoubanRating(imdbId) {
@@ -82,7 +82,6 @@ function requestDoubanRating(imdbId) {
         if (consoleLog) console.log("Netflix Douban Rating URL:\n" + url);
         $tool.get(url, function (error, response, data) {
             if (!error) {
-                if (consoleLog) console.log("Netflix Douban Rating response:\n" + JSON.stringify(response));
                 if (consoleLog) console.log("Netflix Douban Rating Data:\n" + data);
                 if (response.status == 200) {
                     const obj = JSON.parse(data);
@@ -107,7 +106,6 @@ function requestIMDbRating(title, year, type) {
         if (consoleLog) console.log("Netflix IMDb Rating URL:\n" + url);
         $tool.get(url, function (error, response, data) {
             if (!error) {
-                if (consoleLog) console.log("Netflix IMDb Rating response:\n" + JSON.stringify(response));
                 if (consoleLog) console.log("Netflix IMDb Rating Data:\n" + data);
                 if (response.status == 200) {
                     const obj = JSON.parse(data);
@@ -140,7 +138,7 @@ function updateIMDbApikey() {
     if (IMDbApikey) IMDbApikeys.splice(IMDbApikeys.indexOf(IMDbApikey), 1);
     const index = Math.floor(Math.random() * IMDbApikeys.length);
     IMDbApikey = IMDbApikeys[index];
-    $tool.setCache(IMDbApikey, imdbApikeyCacheKey);
+    $tool.write(IMDbApikey, imdbApikeyCacheKey);
 }
 
 function get_IMDb_message(data) {
@@ -485,11 +483,8 @@ function countryEmoji(name) {
     return emojiMap[name] ? emojiMap[name] : emojiMap["Chequered"];
 }
 
-function tool() {
-    const isResponse = typeof $response != "undefined"
-    const isSurge = typeof $httpClient != "undefined"
-    const isQuanX = typeof $task != "undefined"
-    const node = (() => {
+function Tool() {
+    _node = (() => {
         if (typeof require == "function") {
             const request = require('request')
             return ({ request })
@@ -497,62 +492,50 @@ function tool() {
             return (null)
         }
     })()
-    const notify = (title, subtitle, message) => {
-        if (isQuanX) $notify(title, subtitle, message)
-        if (isSurge) $notification.post(title, subtitle, message)
-        if (node) console.log(JSON.stringify({ title, subtitle, message }));
+    _isSurge = typeof $httpClient != "undefined"
+    _isQuanX = typeof $task != "undefined"
+    this.isSurge = _isSurge
+    this.isQuanX = _isQuanX
+    this.isResponse = typeof $response != "undefined"
+    this.notify = (title, subtitle, message) => {
+        if (_isQuanX) $notify(title, subtitle, message)
+        if (_isSurge) $notification.post(title, subtitle, message)
+        if (_node) console.log(JSON.stringify({ title, subtitle, message }));
     }
-    const setCache = (value, key) => {
-        if (isQuanX) return $prefs.setValueForKey(value, key)
-        if (isSurge) return $persistentStore.write(value, key)
+    this.write = (value, key) => {
+        if (_isQuanX) return $prefs.setValueForKey(value, key)
+        if (_isSurge) return $persistentStore.write(value, key)
     }
-    const getCache = (key) => {
-        if (isQuanX) return $prefs.valueForKey(key)
-        if (isSurge) return $persistentStore.read(key)
+    this.read = (key) => {
+        if (_isQuanX) return $prefs.valueForKey(key)
+        if (_isSurge) return $persistentStore.read(key)
     }
-    const adapterStatus = (response) => {
-        if (response.status) {
-            response["statusCode"] = response.status
-        } else if (response.statusCode) {
-            response["status"] = response.statusCode
+    this.get = (options, callback) => {
+        if (_isQuanX) {
+            if (typeof options == "string") options = { url: options }
+            options["method"] = "GET"
+            $task.fetch(options).then(response => { callback(null, _status(response), response.body) }, reason => callback(reason.error, null, null))
+        }
+        if (_isSurge) $httpClient.get(options, (error, response, body) => { callback(error, _status(response), body) })
+        if (_node) _node.request(options, (error, response, body) => { callback(error, _status(response), body) })
+    }
+    this.post = (options, callback) => {
+        if (_isQuanX) {
+            if (typeof options == "string") options = { url: options }
+            options["method"] = "POST"
+            $task.fetch(options).then(response => { callback(null, _status(response), response.body) }, reason => callback(reason.error, null, null))
+        }
+        if (_isSurge) $httpClient.post(options, (error, response, body) => { callback(error, _status(response), body) })
+        if (_node) _node.request.post(options, (error, response, body) => { callback(error, _status(response), body) })
+    }
+    _status = (response) => {
+        if (response) {
+            if (response.status) {
+                response["statusCode"] = response.status
+            } else if (response.statusCode) {
+                response["status"] = response.statusCode
+            }
         }
         return response
     }
-    const get = (options, callback) => {
-        if (isQuanX) {
-            if (typeof options == "string") options = { url: options }
-            options["method"] = "GET"
-            $task.fetch(options).then(response => {
-                callback(null, adapterStatus(response), response.body)
-            }, reason => callback(reason.error, null, null))
-        }
-        if (isSurge) $httpClient.get(options, (error, response, body) => {
-            callback(error, adapterStatus(response), body)
-        })
-        if (node) {
-            node.request(options, (error, response, body) => {
-                callback(error, adapterStatus(response), body)
-            })
-        }
-    }
-    const post = (options, callback) => {
-        if (isQuanX) {
-            if (typeof options == "string") options = { url: options }
-            options["method"] = "POST"
-            $task.fetch(options).then(response => {
-                callback(null, adapterStatus(response), response.body)
-            }, reason => callback(reason.error, null, null))
-        }
-        if (isSurge) {
-            $httpClient.post(options, (error, response, body) => {
-                callback(error, adapterStatus(response), body)
-            })
-        }
-        if (node) {
-            node.request.post(options, (error, response, body) => {
-                callback(error, adapterStatus(response), body)
-            })
-        }
-    }
-    return { isResponse, isQuanX, isSurge, notify, setCache, getCache, get, post }
 }
