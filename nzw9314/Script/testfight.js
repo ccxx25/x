@@ -124,19 +124,6 @@ if (isSurge) {
         $notification.post(title, subTitle, detail);
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
 /**
  * 
  * 写入要监测的公测tf appkey，当有空位的时候会弹出通知。
@@ -147,9 +134,9 @@ const title = 'testfilght';
 const url = "https://testflight.apple.com/join/";
 
 //填入要监测的appkey。从testfligt地址获取。
-const appkey = "1G3zEeId,VCIvwk2g";
+const appkey = "VCIvwk2g,VCIvwk2g,SHQFznkM,oV5HiCSz";
 const fullstr = 'This beta is full';
-const appnamereg = /<span>请在 iPhone 或 iPad 中安装 TestFlight 以加入 Beta 版“(.+)”测试。<\/span>/;
+const appnamereg = /<span>请在 iPhone 或 iPad 中安装 TestFlight 以加入 Beta 版"(.+)"测试。<\/span>/;
 var proarray = new Array();
 getResult();
 
@@ -178,9 +165,9 @@ function getResult() {
                 appnamereg.test(data);
                 var appname = appnamereg.exec(data);
                 if (!appname != null) {
-                    var reg = /“.+”/
+                    var reg = /".+"/
                     var item = reg.exec(appname[0]);
-                    var name=item[0].replace('“', '').replace('”', '');
+                    var name=item[0].replace('"', '').replace('"', '');
                     resultstr = resultstr + '[' + name + ']' + upstr + '👉:' + lol.url + '\n'
                 }
             }
@@ -198,7 +185,7 @@ function getResult() {
     }
     Promise.all(proarray).then((result) => {
         if(resultstr==''){
-            //$notification.post(title, '', '暂无车位');
+            $notification.post(title, '', '暂无车位');
         }
         else{
         $notification.post(title, '', resultstr);

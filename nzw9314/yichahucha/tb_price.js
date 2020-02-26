@@ -3,28 +3,46 @@ README：https://github.com/yichahucha/surge/tree/master
  */
 
 const $tool = new Tool()
-const $base64 = new Base64()
-const consoleLog = false
-const url = $request.url
-const body = $response.body
 const path1 = "/amdc/mobileDispatch"
 const path2 = "/gw/mtop.taobao.detail.getdetail"
+const consoleLog = false
+const url = $request.url
 
 if (url.indexOf(path1) != -1) {
-    let obj = JSON.parse($base64.decode(body))
-    let dns = obj.dns
-    if (dns && dns.length > 0) {
-        let i = dns.length;
-        while (i--) {
-            const element = dns[i];
-            let host = "trade-acs.m.taobao.com"
-            if (element.host == host) {
-                element.ips = []
-                if (consoleLog) console.log(JSON.stringify(element))
+    if ($tool.isResponse) {
+        const $base64 = new Base64()
+        let body = $response.body
+        let obj = JSON.parse($base64.decode(body))
+        let dns = obj.dns
+        if (dns && dns.length > 0) {
+            let i = dns.length;
+            while (i--) {
+                const element = dns[i];
+                let host = "trade-acs.m.taobao.com"
+                if (element.host == host) {
+                    element.ips = []
+                    if (consoleLog) console.log(JSON.stringify(element))
+                }
             }
         }
+        body = $base64.encode(JSON.stringify(obj))
+        $done({ body })
+    } else {
+        let body = $request.body
+        let json = Qs2Json(body)
+        let domain = json.domain.split(" ")
+        let i = domain.length;
+        while (i--) {
+            const block = "trade-acs.m.taobao.com"
+            const element = domain[i];
+            if (element == block) {
+                domain.splice(i, 1);
+            }
+        }
+        json.domain = domain.join(" ")
+        body = Json2Qs(json)
+        $done({ body })
     }
-    $done({ body: $base64.encode(JSON.stringify(obj)) })
 }
 
 if (url.indexOf(path2) != -1) {
@@ -34,34 +52,59 @@ if (url.indexOf(path2) != -1) {
     let shareUrl = `https://item.taobao.com/item.htm?id=${item.itemId}`
     requestPrice(shareUrl, function (data) {
         if (data) {
-            let apiStack = obj.data.apiStack[0]
-            let value = JSON.parse(apiStack.value)
-            let tradeConsumerProtection = null
-            let consumerProtection = null
-            if (value.global) {
-                tradeConsumerProtection = value.global.data.tradeConsumerProtection
-                consumerProtection = value.global.data.consumerProtection
-            } else {
-                tradeConsumerProtection = value.tradeConsumerProtection
-                consumerProtection = value.consumerProtection
-            }
-            if (tradeConsumerProtection) {
-                tradeConsumerProtection = setTradeConsumerProtection(data, tradeConsumerProtection)
-            } else {
-                let vertical = value.vertical
-                if (vertical && vertical.hasOwnProperty("tmallhkDirectSale")) {
-                    value["tradeConsumerProtection"] = customTradeConsumerProtection()
-                    value.tradeConsumerProtection = setTradeConsumerProtection(data, value.tradeConsumerProtection)
+            if (obj.data.apiStack) {
+                let apiStack = obj.data.apiStack[0]
+                let value = JSON.parse(apiStack.value)
+                let tradeConsumerProtection = null
+                let consumerProtection = null
+                let trade = null
+                if (value.global) {
+                    tradeConsumerProtection = value.global.data.tradeConsumerProtection
+                    consumerProtection = value.global.data.consumerProtection
+                    trade = value.global.data.trade
                 } else {
-                    consumerProtection = setConsumerProtection(data, consumerProtection)
+                    tradeConsumerProtection = value.tradeConsumerProtection
+                    consumerProtection = value.consumerProtection
+                    trade = value.trade
                 }
+                if (trade && trade.useWap == "true") {
+                    $done({ body })
+                    sendNotify(data, shareUrl)
+                } else {
+                    if (tradeConsumerProtection) {
+                        tradeConsumerProtection = setTradeConsumerProtection(data, tradeConsumerProtection)
+                    } else {
+                        let vertical = value.vertical
+                        if (vertical && vertical.hasOwnProperty("tmallhkDirectSale")) {
+                            value["tradeConsumerProtection"] = customTradeConsumerProtection()
+                            value.tradeConsumerProtection = setTradeConsumerProtection(data, value.tradeConsumerProtection)
+                        } else {
+                            consumerProtection = setConsumerProtection(data, consumerProtection)
+                        }
+                    }
+                    apiStack.value = JSON.stringify(value)
+                    $done({ body: JSON.stringify(obj) })
+                }
+            } else {
+                $done({ body })
+                sendNotify(data, shareUrl)
             }
-            apiStack.value = JSON.stringify(value)
-            $done({ body: JSON.stringify(obj) })
         } else {
             $done({ body })
         }
     })
+}
+
+function sendNotify(data, shareUrl) {
+    if (data.ok == 1 && data.single) {
+        const lower = lowerMsgs(data.single)[0]
+        const detail = priceSummary(data)[1]
+        const tip = data.PriceRemark.Tip + "（仅供参考）"
+        $tool.notify("", "", `〽️历史${lower} ${tip}\n${detail}\n\n👉查看详情：http://tool.manmanbuy.com/historyLowest.aspx?url=${encodeURI(shareUrl)}`)
+    }
+    if (data.ok == 0 && data.msg.length > 0) {
+        $tool.notify("", "", `⚠️ ${data.msg}`)
+    }
 }
 
 function setConsumerProtection(data, consumerProtection) {
@@ -173,7 +216,7 @@ function historySummary(single) {
 }
 
 function difference(currentPrice, price) {
-    let difference = strip(currentPrice - price)
+    let difference = sub(currentPrice, price)
     if (difference == 0) {
         return "-"
     } else {
@@ -181,8 +224,11 @@ function difference(currentPrice, price) {
     }
 }
 
-function strip(num, precision = 12) {
-    return +parseFloat(num.toPrecision(precision));
+function sub(num1, num2) {
+    const num1Digits = (num1.toString().split('.')[1] || '').length;
+    const num2Digits = (num2.toString().split('.')[1] || '').length;
+    const baseNum = Math.pow(10, Math.max(num1Digits, num2Digits));
+    return (num1 * baseNum - num2 * baseNum) / baseNum;
 }
 
 function requestPrice(share_url, callback) {
@@ -248,6 +294,29 @@ function customTradeConsumerProtection() {
         "url": "https://h5.m.taobao.com/app/detailsubpage/consumer/index.js",
         "type": "0"
     }
+}
+
+function Qs2Json(url) {
+    url = url == null ? window.location.href : url;
+    var search = url.substring(url.lastIndexOf("?") + 1);
+    var obj = {};
+    var reg = /([^?&=]+)=([^?&=]*)/g;
+    search.replace(reg, function (rs, $1, $2) {
+        var name = decodeURIComponent($1);
+        var val = decodeURIComponent($2);
+        val = String(val);
+        obj[name] = val;
+        return rs;
+    });
+    return obj;
+}
+
+function Json2Qs(json) {
+    var temp = [];
+    for (var k in json) {
+        temp.push(k + "=" + json[k]);
+    }
+    return temp.join("&");
 }
 
 Array.prototype.insert = function (index, item) {

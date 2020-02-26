@@ -125,87 +125,56 @@ if (isSurge) {
     }
 }
 
+/*
+英雄联盟排名
+  By @syzzzf
+*/
 
+//默认大区：峡谷之巅 31，如需修改自己去wegame抓包解决
+const area=31;
 
+//默认显示第一页
+const pnum=1;
 
+//默认显示20个
+const psize=10;
 
+//rank类型
+const rank_type=0;
 
-
-
-
-
-
-
-
-/**
- * 
- * 写入要监测的公测tf appkey，当有空位的时候会弹出通知。
- * 建议task时间间隔小点。
- */
-
-const title = 'testfilght';
-const url = "https://testflight.apple.com/join/";
-
-//填入要监测的appkey。从testfligt地址获取。
-const appkey = "1G3zEeId,VCIvwk2g";
-const fullstr = 'This beta is full';
-const appnamereg = /<span>请在 iPhone 或 iPad 中安装 TestFlight 以加入 Beta 版“(.+)”测试。<\/span>/;
-var proarray = new Array();
+const title='[峡谷之巅]排名';
 getResult();
 
-function getResult() {
-    var upstr = '已有空位，抓紧上车';
-    var apps = new Array(); //定义一数组
-    apps = appkey.split(","); //字符分割
-    var resultstr = '';
+function getResult(){
+    console.log('begin');
+    let body={"area_id": 31,"pnum": 1,"psize": 20,"rank_type": 0};
+    const lol = {
+        url: 'https://m.wegame.com.cn/api/mobile/lua/proxy/index/mwg_lol_proxy/get_score_rank',
+        headers: {
 
-
-    console.log(apps.length);
-    for (var i = 0; i < apps.length; i++) {
-        var lol = {
-            url: url + apps[i],
-            headers: {
-                'User-Agent': '[{"key":"User-Agent","value":" Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2357.130 Safari/537.36 qblink wegame.exe QBCore/3.70.66.400 QQBrowser/9.0.2524.400","type":"text","enabled":true,"description":""},{"key":"X-Requested-With","value":" XMLHttpRequest","type":"text","enabled":false,"description":""}]',
-            },
-        };
-        console.log(i+'begin');
-        var p = new Promise(function (resolve) {
-        $httpClient.get(lol, function (error, response, data) {
-            console.log(data.indexOf(fullstr));
-            try{
-          
-            if (data.indexOf(fullstr) == -1) {
-                appnamereg.test(data);
-                var appname = appnamereg.exec(data);
-                if (!appname != null) {
-                    var reg = /“.+”/
-                    var item = reg.exec(appname[0]);
-                    var name=item[0].replace('“', '').replace('”', '');
-                    resultstr = resultstr + '[' + name + ']' + upstr + '👉:' + lol.url + '\n'
-                }
-            }
-            resolve('done');
-        }
-        catch(errr){
-            resolve('done');
-        }
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body)
+      };
+    $httpClient.post(lol, function (error, response, data) {
+        let obj = JSON.parse(data);
+        let chanmpion='🔥';
+        let retstr='';
+        let result=obj.data.data.rank_list;
+        console.log(result)
+        var order=1;
+        for(var i in result){
+            retstr=retstr+'排名·';
+            retstr=retstr+order;
+            retstr=retstr+'   [  ';
+            retstr=retstr+result[i].name;
+            retstr=retstr+'  ]    分数<'
+            retstr=retstr+result[i].win_point;
+            retstr=retstr+'>\n';
+            order++;
+        }   
          
-        });
-            });
-
-           
-        proarray[i] = p;
-    }
-    Promise.all(proarray).then((result) => {
-        if(resultstr==''){
-            //$notification.post(title, '', '暂无车位');
-        }
-        else{
-        $notification.post(title, '', resultstr);
-        }
-    }).catch((error) => {
-        console.log(error)
-    });
-
-
+        $notification.post(title, '', retstr);
+        $done();
+    })
 }

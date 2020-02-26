@@ -7,8 +7,8 @@
     您也可直接在tg中联系@wechatu
 */
 // #region 固定头部
-let isQuantumultX = $task !== undefined; //判断当前运行环境是否是qx
-let isSurge = $httpClient !== undefined; //判断当前运行环境是否是surge
+let isQuantumultX = $task != undefined; //判断当前运行环境是否是qx
+let isSurge = $httpClient != undefined; //判断当前运行环境是否是surge
 // http请求
 var $task = isQuantumultX ? $task : {};
 var $httpClient = isSurge ? $httpClient : {};
@@ -68,17 +68,29 @@ if (isSurge) {
             return new Promise((resolve, reject) => {
                 if (url.method == 'POST') {
                     $httpClient.post(url, (error, response, data) => {
-                        response.body = data;
-                        resolve(response, {
-                            error: error
-                        });
+                        if (response) {
+                            response.body = data;
+                            resolve(response, {
+                                error: error
+                            });
+                        } else {
+                            resolve(null, {
+                                error: error
+                            })
+                        }
                     })
                 } else {
                     $httpClient.get(url, (error, response, data) => {
-                        response.body = data;
-                        resolve(response, {
-                            error: error
-                        });
+                        if (response) {
+                            response.body = data;
+                            resolve(response, {
+                                error: error
+                            });
+                        } else {
+                            resolve(null, {
+                                error: error
+                            })
+                        }
                     })
                 }
             })
@@ -124,88 +136,42 @@ if (isSurge) {
         $notification.post(title, subTitle, detail);
     }
 }
+// #endregion
+const nCoVrumor = "https://lab.isaaclin.cn/nCoV/api/rumors?rumorType=0&num=all"
 
 
-
-
-
-
-
-
-
-
-
-
-
-/**
- * 
- * 写入要监测的公测tf appkey，当有空位的时候会弹出通知。
- * 建议task时间间隔小点。
- */
-
-const title = 'testfilght';
-const url = "https://testflight.apple.com/join/";
-
-//填入要监测的appkey。从testfligt地址获取。
-const appkey = "1G3zEeId,VCIvwk2g";
-const fullstr = 'This beta is full';
-const appnamereg = /<span>请在 iPhone 或 iPad 中安装 TestFlight 以加入 Beta 版“(.+)”测试。<\/span>/;
-var proarray = new Array();
-getResult();
-
-function getResult() {
-    var upstr = '已有空位，抓紧上车';
-    var apps = new Array(); //定义一数组
-    apps = appkey.split(","); //字符分割
-    var resultstr = '';
-
-
-    console.log(apps.length);
-    for (var i = 0; i < apps.length; i++) {
-        var lol = {
-            url: url + apps[i],
-            headers: {
-                'User-Agent': '[{"key":"User-Agent","value":" Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2357.130 Safari/537.36 qblink wegame.exe QBCore/3.70.66.400 QQBrowser/9.0.2524.400","type":"text","enabled":true,"description":""},{"key":"X-Requested-With","value":" XMLHttpRequest","type":"text","enabled":false,"description":""}]',
-            },
-        };
-        console.log(i+'begin');
-        var p = new Promise(function (resolve) {
-        $httpClient.get(lol, function (error, response, data) {
-            console.log(data.indexOf(fullstr));
-            try{
-          
-            if (data.indexOf(fullstr) == -1) {
-                appnamereg.test(data);
-                var appname = appnamereg.exec(data);
-                if (!appname != null) {
-                    var reg = /“.+”/
-                    var item = reg.exec(appname[0]);
-                    var name=item[0].replace('“', '').replace('”', '');
-                    resultstr = resultstr + '[' + name + ']' + upstr + '👉:' + lol.url + '\n'
-                }
-            }
-            resolve('done');
-        }
-        catch(errr){
-            resolve('done');
-        }
-         
-        });
-            });
-
-           
-        proarray[i] = p;
+$httpClient.get(nCoVrumor, function(error, response, data){
+    if (error){
+        console.log(error);
+        $done();                   
+    } else {
+        var obj = JSON.parse(data);
+        console.log(obj);
+        var end = obj.results.length - 1;
+        var i = getRandom(0, end, fixed=0);
+        var title = "标题：" + obj.results[i].title;
+        var mainSummary = "内容概述：" + obj.results[i].mainSummary;
+        var body = "内容全文：" + obj.results[i].body;
+        let rumors = [title,mainSummary,body];
+        $notification.post(rumors[0], rumors[1],rumors[2]);
+        $done();
     }
-    Promise.all(proarray).then((result) => {
-        if(resultstr==''){
-            //$notification.post(title, '', '暂无车位');
-        }
-        else{
-        $notification.post(title, '', resultstr);
-        }
-    }).catch((error) => {
-        console.log(error)
-    });
-
-
 }
+);
+
+function getRandom(start, end, fixed=0) {
+            let differ = end - start
+            let random = Math.random()
+            return (start + differ * random).toFixed(fixed)
+}
+/*****************************************************************
+
+# 疫情辟谣 (By @Dachaw)
+
+[Task]
+
+# 在每天 9:00 报告新冠肺炎疫情
+
+0 9 * * * nCoVrumors.js
+
+*****************************************************************/
