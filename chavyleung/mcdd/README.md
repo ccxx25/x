@@ -1,42 +1,40 @@
-# 加油广东
+# 叮咚买菜
 
 > 代码已同时兼容 Surge & QuanX, 使用同一份签到脚本即可
-
-> 2020.2.28 更新域名: gdws.nsenz.com > m.gdoil.cn
 
 ## 配置 (Surge)
 
 ```properties
 [MITM]
-m.gdoil.cn
+maicai.api.ddxq.mobi
 
 [Script]
-http-request ^https:\/\/m.gdoil.cn\/webapi\/usersign\/addusersign script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/gdoil/gdoil.cookie.js
-cron "10 0 0 * * *" script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/gdoil/gdoil.js
+http-request ^https:\/\/maicai.api.ddxq.mobi\/point\/home script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/mcdd/mcdd.cookie.js
+cron "10 0 0 * * *" script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/mcdd/mcdd.js
 ```
 
 ## 配置 (QuanX)
 
 ```properties
 [MITM]
-m.gdoil.cn
+maicai.api.ddxq.mobi
 
 [rewrite_local]
-^https:\/\/m.gdoil.cn\/webapi\/usersign\/addusersign url script-request-header gdoil.cookie.js
+^https:\/\/maicai.api.ddxq.mobi\/point\/home url script-request-header mcdd.cookie.js
 
 [task_local]
-1 0 * * * gdoil.js
+1 0 * * * mcdd.js
 ```
 
 ## 说明
 
-1. 先把`m.gdoil.cn`加到`[MITM]`
+1. 先把`maicai.api.ddxq.mobi`加到`[MITM]`
 2. 再配置重写规则:
    - Surge: 把两条远程脚本放到`[Script]`
-   - QuanX: 把`gdoil.cookie.js`和`gdoil.js`传到`On My iPhone - Quantumult X - Scripts` (传到 iCloud 相同目录也可, 注意要打开 quanx 的 iCloud 开关)
-3. 打开 APP 然后手动签到 1 次, 系统提示: `获取Cookie: 成功`
-4. 最后就可以把第 1 条脚本注释掉了
-5. 运行一次脚本, 如果提示重复签到, 那就算成功了!
+   - QuanX: 把`mcdd.cookie.js`和`mcdd.js`传到`On My iPhone - Quantumult X - Scripts` (传到 iCloud 相同目录也可, 注意要打开 quanx 的 iCloud 开关)
+3. 打开 APP, 访问下`我的`>`积分`
+4. 系统提示: `获取Cookie: 成功` （如果不提示获取成功, 尝试杀进程再进个人中心）
+5. 最后就可以把第 1 条脚本注释掉了
 
 > 第 1 条脚本是用来获取 cookie 的, 用浏览器访问一次获取 cookie 成功后就可以删掉或注释掉了, 但请确保在`登录成功`后再获取 cookie.
 

@@ -1,46 +1,55 @@
-# 加油广东
+# 百词斩
+
+> 参考 chavy 签到脚本制作的百词斩领取铜板的脚本
 
 > 代码已同时兼容 Surge & QuanX, 使用同一份签到脚本即可
 
-> 2020.2.28 更新域名: gdws.nsenz.com > m.gdoil.cn
+> 不需要手动编辑脚本 (获取 Cookie 和手机号码都由脚本自动完成)
+
+> 感谢 [@AGentleWind](https://github.com/AGentleWind) PR
 
 ## 配置 (Surge)
 
 ```properties
 [MITM]
-m.gdoil.cn
+group.baicizhan.com
 
 [Script]
-http-request ^https:\/\/m.gdoil.cn\/webapi\/usersign\/addusersign script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/gdoil/gdoil.cookie.js
-cron "10 0 0 * * *" script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/gdoil/gdoil.js
+http-request ^https://group\.baicizhan\.com/group/rewards? script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/bcz/bcz.cookie.js
+
+cron "0 8-24/4 * * *" script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/bcz/bcz.js
 ```
 
 ## 配置 (QuanX)
 
 ```properties
 [MITM]
-m.gdoil.cn
+group.baicizhan.com
 
 [rewrite_local]
-^https:\/\/m.gdoil.cn\/webapi\/usersign\/addusersign url script-request-header gdoil.cookie.js
+# 190及以后版本
+^https://group\.baicizhan\.com/group/rewards? url script-request-header bcz.cookie.js
 
 [task_local]
-1 0 * * * gdoil.js
+0 8-24/4 * * * bcz.js
 ```
 
 ## 说明
 
-1. 先把`m.gdoil.cn`加到`[MITM]`
+> 先在登录成功后, 再打开获取 Cookie 的脚本
+
+1. 先配置`[MITM]`
+   - Surge&QuanX: group.baicizhan.com
 2. 再配置重写规则:
    - Surge: 把两条远程脚本放到`[Script]`
-   - QuanX: 把`gdoil.cookie.js`和`gdoil.js`传到`On My iPhone - Quantumult X - Scripts` (传到 iCloud 相同目录也可, 注意要打开 quanx 的 iCloud 开关)
-3. 打开 APP 然后手动签到 1 次, 系统提示: `获取Cookie: 成功`
-4. 最后就可以把第 1 条脚本注释掉了
-5. 运行一次脚本, 如果提示重复签到, 那就算成功了!
+   - QuanX: 把`bcz.cookie.js`和`bcz.js`传到`On My iPhone - Quantumult X - Scripts` (传到 iCloud 相同目录也可, 注意要打开 quanx 的 iCloud 开关)
+3. 打开 APP 手动签到一次: 访问下右下角 `我` > `我的铜板` > `加入百词斩小班` > `去查看` > `我的小班进去 领铜板`
+4. 系统提示: `获取Cookie: 成功`
+5. 最后就可以把第 1 条脚本注释掉了
 
 > 第 1 条脚本是用来获取 cookie 的, 用浏览器访问一次获取 cookie 成功后就可以删掉或注释掉了, 但请确保在`登录成功`后再获取 cookie.
 
-> 第 2 条脚本是签到脚本, 每天`00:00:10`执行一次.
+> 第 2 条脚本是签到脚本, 每天`8-24点每4小时`执行一次.
 
 ## 常见问题
 
@@ -91,3 +100,5 @@ m.gdoil.cn
 [@lhie1](https://github.com/lhie1)
 
 [@ConnersHua](https://github.com/ConnersHua)
+
+[@AGentleWind](https://github.com/AGentleWind)

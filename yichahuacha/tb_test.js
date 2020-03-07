@@ -3,77 +3,138 @@ README：https://github.com/yichahucha/surge/tree/master
  */
 
 const $tool = new Tool()
-const consoleLog = false
-const url = $request.url
 const path1 = "/amdc/mobileDispatch"
 const path2 = "/gw/mtop.taobao.detail.getdetail"
+const consoleLog = false
+const url = $request.url
 
 if (url.indexOf(path1) != -1) {
-    if ($tool.isResponse) {
-        const $base64 = new Base64()
-        let body = $response.body
-        let obj = JSON.parse($base64.decode(body))
-        let dns = obj.dns
-        if (dns && dns.length > 0) {
-            let i = dns.length;
-            while (i--) {
-                const element = dns[i];
-                let host = "trade-acs.m.taobao.com"
-                if (element.host == host) {
-                    element.ips = []
-                    if (consoleLog) console.log(JSON.stringify(element))
-                }
-            }
+    let body = $request.body
+    let json = Qs2Json(body)
+    let domain = json.domain.split(" ")
+    let i = domain.length;
+    while (i--) {
+        const block = "trade-acs.m.taobao.com"
+        const element = domain[i];
+        if (element == block) {
+            domain.splice(i, 1);
         }
-        body = $base64.encode(JSON.stringify(obj))
-        $done({ body })
-    } else {
-        let body = $request.body
-        let json = Qs2Json(body)
-        let domain = json.domain.split(" ")
-        let i = domain.length;
-        while (i--) {
-            const block = "trade-acs.m.taobao.com"
-            const element = domain[i];
-            if (element == block) {
-                domain.splice(i, 1);
-            }
-        }
-        json.domain = domain.join(" ")
-        body = Json2Qs(json)
-        $done({ body })
     }
+    json.domain = domain.join(" ")
+    body = Json2Qs(json)
+    $done({ body })
 }
 
 if (url.indexOf(path2) != -1) {
     const body = $response.body
-    $done({ body })
-    const obj = JSON.parse(body)
+    let obj = JSON.parse(body)
     let item = obj.data.item
     let shareUrl = `https://item.taobao.com/item.htm?id=${item.itemId}`
     requestPrice(shareUrl, function (data) {
         if (data) {
-            if (data.ok == 1 && data.single) {
-                const lower = lowerMsgs(data.single)
-                const detail = priceSummary(data)
-                const tip = data.PriceRemark.Tip + "（仅供参考）"
-                $tool.notify("", "", `${lower} ${tip}\n${detail}\n\n👉查看详情：http://tool.manmanbuy.com/historyLowest.aspx?url=${encodeURI(shareUrl)}`)
+            if (obj.data.apiStack) {
+                let apiStack = obj.data.apiStack[0]
+                let value = JSON.parse(apiStack.value)
+                let tradeConsumerProtection = null
+                let consumerProtection = null
+                let trade = null
+                if (value.global) {
+                    tradeConsumerProtection = value.global.data.tradeConsumerProtection
+                    consumerProtection = value.global.data.consumerProtection
+                    trade = value.global.data.trade
+                } else {
+                    tradeConsumerProtection = value.tradeConsumerProtection
+                    consumerProtection = value.consumerProtection
+                    trade = value.trade
+                }
+                if (trade && trade.useWap == "true") {
+                    $done({ body })
+                    sendNotify(data, shareUrl)
+                } else {
+                    if (tradeConsumerProtection) {
+                        tradeConsumerProtection = setTradeConsumerProtection(data, tradeConsumerProtection)
+                    } else {
+                        let vertical = value.vertical
+                        if (vertical && vertical.hasOwnProperty("tmallhkDirectSale")) {
+                            value["tradeConsumerProtection"] = customTradeConsumerProtection()
+                            value.tradeConsumerProtection = setTradeConsumerProtection(data, value.tradeConsumerProtection)
+                        } else {
+                            consumerProtection = setConsumerProtection(data, consumerProtection)
+                        }
+                    }
+                    apiStack.value = JSON.stringify(value)
+                    $done({ body: JSON.stringify(obj) })
+                }
+            } else {
+                $done({ body })
+                sendNotify(data, shareUrl)
             }
-            if (data.ok == 0 && data.msg.length > 0) {
-                $tool.notify("", "", `⚠️ ${data.msg}`)
-            }
+        } else {
+            $done({ body })
         }
     })
+}
+
+function sendNotify(data, shareUrl) {
+    if (data.ok == 1 && data.single) {
+        const lower = lowerMsgs(data.single)[0]
+        const detail = priceSummary(data)[1]
+        const tip = data.PriceRemark.Tip + "（仅供参考）"
+        $tool.notify("", "", `〽️历史${lower} ${tip}\n${detail}\n\n👉查看详情：http://tool.manmanbuy.com/historyLowest.aspx?url=${encodeURI(shareUrl)}`)
+    }
+    if (data.ok == 0 && data.msg.length > 0) {
+        $tool.notify("", "", `⚠️ ${data.msg}`)
+    }
+}
+
+function setConsumerProtection(data, consumerProtection) {
+    let basicService = consumerProtection.serviceProtection.basicService
+    let items = consumerProtection.items
+    if (data.ok == 1 && data.single) {
+        const lower = lowerMsgs(data.single)
+        const tip = data.PriceRemark.Tip
+        const summary = priceSummary(data)[1]
+        const item = customItem(lower[1], [`${lower[0]} ${tip}（仅供参考）\n${summary}`])
+        basicService.services.unshift(item)
+        items.unshift(item)
+    }
+    if (data.ok == 0 && data.msg.length > 0) {
+        let item = customItem("暂无历史价格", [data.msg])
+        basicService.services.unshift(item)
+        items.unshift(item)
+    }
+    return consumerProtection
+}
+
+function setTradeConsumerProtection(data, tradeConsumerProtection) {
+    let service = tradeConsumerProtection.tradeConsumerService.service
+    if (data.ok == 1 && data.single) {
+        const lower = lowerMsgs(data.single)
+        const tip = data.PriceRemark.Tip
+        const tbitems = priceSummary(data)[0]
+        const item = customItem(lower[1], `${lower[0]} ${tip}（仅供参考）`)
+        let nonService = tradeConsumerProtection.tradeConsumerService.nonService
+        service.items = service.items.concat(nonService.items)
+        nonService.title = "价格详情"
+        nonService.items = tbitems
+        service.items.unshift(item)
+    }
+    if (data.ok == 0 && data.msg.length > 0) {
+        service.items.unshift(customItem("暂无历史价格", data.msg))
+    }
+    return tradeConsumerProtection
 }
 
 function lowerMsgs(data) {
     const lower = data.lowerPriceyh
     const lowerDate = dateFormat(data.lowerDateyh)
-    const lowerMsg = "〽️历史最低到手价：¥" + String(lower) + `（${lowerDate}）`
-    return lowerMsg
+    const lowerMsg = "最低到手价：¥" + String(lower) + `（${lowerDate}）`
+    const lowerMsg1 = "历史最低¥" + String(lower)
+    return [lowerMsg, lowerMsg1]
 }
 
 function priceSummary(data) {
+    let tbitems = []
     let summary = ""
     let listPriceDetail = data.PriceRemark.ListPriceDetail
     listPriceDetail.pop()
@@ -86,9 +147,11 @@ function priceSummary(data) {
         } else if (index == 4) {
             item.Name = "三十天最低"
         }
-        summary += `\n${item.Name}   ${item.Price}   ${item.Date}   ${item.Difference}`
+        summary += `\n${item.Name}${getSpace(4)}${item.Price}${getSpace(4)}${item.Date}${getSpace(4)}${item.Difference}`
+        let summaryItem = `${item.Name}${getSpace(4)}${item.Price}${getSpace(4)}${item.Date}${getSpace(4)}${item.Difference}`
+        tbitems.push(customItem(summaryItem))
     })
-    return summary
+    return [tbitems, summary]
 }
 
 function historySummary(single) {
@@ -182,8 +245,45 @@ function dateFormat(cellval) {
     return date.getFullYear() + "-" + month + "-" + currentDate;
 }
 
+function getSpace(length) {
+    let blank = "";
+    for (let index = 0; index < length; index++) {
+        blank += " ";
+    }
+    return blank;
+}
+
+function customItem(title, desc) {
+    return {
+        icon: "https://s2.ax1x.com/2020/02/16/3STeIJ.png",
+        title: title,
+        name: title,
+        desc: desc
+    }
+}
+
+function customTradeConsumerProtection() {
+    return {
+        "tradeConsumerService": {
+            "service": {
+                "items": [
+                ],
+                "icon": "",
+                "title": "基础服务"
+            },
+            "nonService": {
+                "items": [
+                ],
+                "title": "其他"
+            }
+        },
+        "passValue": "all",
+        "url": "https://h5.m.taobao.com/app/detailsubpage/consumer/index.js",
+        "type": "0"
+    }
+}
+
 function Qs2Json(url) {
-    url = url == null ? window.location.href : url;
     var search = url.substring(url.lastIndexOf("?") + 1);
     var obj = {};
     var reg = /([^?&=]+)=([^?&=]*)/g;
