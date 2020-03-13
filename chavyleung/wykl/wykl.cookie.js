@@ -1,13 +1,20 @@
-const cookieName = '京东到家'
-const signheaderKey = 'chen_signheader_jddj'
-const chen = init()
-  if (this.$request) {
-    const signheaderVal = JSON.stringify($request.headers)
-    if (signheaderVal) {
-      chen.setdata(signheaderVal, signheaderKey)
-      chen.msg(cookieName, `获取Cookie: 成功`, ``)
-    }
-  }
+const cookieName = '网易考拉'
+const signurlKey = 'senku_signurl_wykl'
+const signheaderKey = 'senku_signheader_wykl'
+const signbodyKey = 'senku_signbody_wykl'
+const senku = init()
+
+const requrl = $request.url
+if ($request && $request.method != 'OPTIONS') {
+  const signurlVal = requrl
+  const signheaderVal = JSON.stringify($request.headers)
+  const signbodyVal = $request.body
+  if (signurlVal) senku.setdata(signurlVal, signurlKey)
+  if (signheaderVal) senku.setdata(signheaderVal, signheaderKey)
+  if (signbodyVal) senku.setdata(signbodyVal, signbodyKey)
+  senku.msg(cookieName, `获取Cookie: 成功`, ``)
+}
+
 function init() {
   isSurge = () => {
     return undefined === this.$httpClient ? false : true
@@ -51,4 +58,4 @@ function init() {
   }
   return { isSurge, isQuanX, msg, log, getdata, setdata, get, post, done }
 }
-chen.done()
+senku.done()
