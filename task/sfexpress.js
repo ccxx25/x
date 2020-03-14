@@ -41,7 +41,7 @@ function loginapp() {
 function signapp() {
   return new Promise((resolve, reject) => {
     let url = { url: `https://sf-integral-sign-in.weixinjia.net/app/signin`, headers: JSON.parse(VAL_loginheader) }
-    url.headers['Cookie'] = `${signinfo.SESSION}`
+    delete url.headers['Cookie']
     url.headers['Origin'] = 'https://sf-integral-sign-in.weixinjia.net'
     url.headers['Connection'] = 'keep-alive'
     url.headers['Content-Type'] = 'application/x-www-form-urlencoded'
@@ -50,6 +50,7 @@ function signapp() {
     url.headers['Content-Length'] = '15'
     url.headers['Accept-Language'] = 'zh-cn'
     url.headers['Accept-Encoding'] = 'gzip, deflate, br'
+    url.body = `date=${new Date().getFullYear()}-${new Date().getMonth() + 1}-${new Date().getDate()}`
     chavy.post(url, (error, response, data) => {
       try {
         chavy.log(`❕ ${cookieName} signapp - response: ${JSON.stringify(response)}`)
@@ -68,7 +69,7 @@ function signapp() {
 function getinfo() {
   return new Promise((resolve, reject) => {
     let url = { url: `https://sf-integral-sign-in.weixinjia.net/app/init`, headers: JSON.parse(VAL_loginheader) }
-    url.headers['Cookie'] = `${signinfo.SESSION}; ${signinfo.pkgDeviceId}`
+    delete url.headers['Cookie']
     url.headers['Origin'] = 'https://sf-integral-sign-in.weixinjia.net'
     url.headers['Connection'] = 'keep-alive'
     url.headers['Content-Type'] = 'application/x-www-form-urlencoded'
@@ -99,12 +100,11 @@ function showmsg() {
   if (signinfo.signapp.code == 0 && signinfo.signapp.msg == 'success') {
     subTitle = `签到结果: 成功`
   } else if (signinfo.signapp.code == -1) {
-    // if (signinfo.signapp.msg == 'ALREADY_CHECK') {
-    //   subTitle = `签到结果: 成功 (重复签到)`
-    // } else {
-    //   subTitle = `签到结果: 失败`
-    // }
-    subTitle = `签到结果: 成功 (重复签到)`
+    if (signinfo.signapp.msg == 'ALREADY_CHECK') {
+      subTitle = `签到结果: 成功 (重复签到)`
+    } else {
+      subTitle = `签到结果: 失败`
+    }
   } else {
     subTitle = `签到结果: 未知`
     detail = `说明: ${signinfo.signapp.msg}`
