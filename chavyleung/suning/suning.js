@@ -95,6 +95,9 @@ function signweb() {
     if (VAL_signweburl) {
       url = { url: VAL_signweburl, headers: JSON.parse(VAL_signwebheader) }
       delete url.headers['Cookie']
+      url.headers['Host'] = 'luckman.suning.com'
+      url.headers['Referer'] = 'https: //luckman.suning.com/luck-web/sign/app/index_sign.htm?wx_navbar_transparent=true'
+      url.headers['User-Agent'] = 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 SNEBUY-APP 8.5.0 SNCLIENT-WAP'
     } else if (VAL_signweburlBarry) {
       url = { url: VAL_signweburlBarry, headers: {} }
       url.headers['Cookie'] = chavy.getdata('snyg_userCookieKey')
@@ -231,11 +234,11 @@ function showmsg() {
       subTitle += '低价: 重复'
     } else {
       subTitle += '低价: 失败'
-      chavy.log(`❌ ${cookieName} showmsg - 每日红包 - signweb: ${JSON.stringify(signinfo.signgame)}`)
+      chavy.log(`❌ ${cookieName} showmsg - 每日红包 - signgame: ${JSON.stringify(signinfo.signgame)}`)
     }
   } else {
-    subTitle += '红包: 失败'
-    chavy.log(`❌ ${cookieName} showmsg - 每日红包 - signweb: ${JSON.stringify(signinfo.signgame)}`)
+    subTitle += '低价: 失败'
+    chavy.log(`❌ ${cookieName} showmsg - 每日红包 - signgame: ${JSON.stringify(signinfo.signgame)}`)
   }
 
   if (signinfo.webinfo && signinfo.webinfo.respData) {
