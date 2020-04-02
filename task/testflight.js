@@ -147,7 +147,7 @@ const title = 'testfilght';
 const url = "https://testflight.apple.com/join/";
 
 //填入要监测的appkey。从testfligt地址获取。
-const appkey = "1G3zEeId,VCIvwk2g,bbyXP6Lx,BOI0MjUU,wArXdacJ,YsHONy5I,yxGRjKaS";
+const appkey = "yxGRjKaS,1G3zEeId,BOI0MjUU,wArXdacJ,YsHONy5I";
 const fullstr = 'This beta is full';
 const appnamereg = /<span>请在 iPhone 或 iPad 中安装 TestFlight 以加入 Beta 版“(.+)”测试。<\/span>/;
 var proarray = new Array();
@@ -160,7 +160,7 @@ function getResult() {
     var resultstr = '';
 
 
-    console.log(apps.length);
+    //console.log(apps.length);
     for (var i = 0; i < apps.length; i++) {
         var lol = {
             url: url + apps[i],
@@ -168,10 +168,10 @@ function getResult() {
                 'User-Agent': '[{"key":"User-Agent","value":" Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2357.130 Safari/537.36 qblink wegame.exe QBCore/3.70.66.400 QQBrowser/9.0.2524.400","type":"text","enabled":true,"description":""},{"key":"X-Requested-With","value":" XMLHttpRequest","type":"text","enabled":false,"description":""}]',
             },
         };
-        console.log(i+'begin');
+        //console.log(i+'begin');
         var p = new Promise(function (resolve) {
         $httpClient.get(lol, function (error, response, data) {
-            console.log(data.indexOf(fullstr));
+            //console.log(data.indexOf(fullstr));
             try{
           
             if (data.indexOf(fullstr) == -1) {
@@ -199,6 +199,7 @@ function getResult() {
     Promise.all(proarray).then((result) => {
         if(resultstr==''){
             //$notification.post(title, '', '暂无车位');
+            console.log('[Quantumult X]:暂无车位');
         }
         else{
         $notification.post(title, '', resultstr);

@@ -1,11 +1,10 @@
 //Script event auto linked ipv4 nextdns: network-change
 
-$httpClient.get('https://link-ip.nextdns.io/3994b1/40bcbadb4693c2a5', function(error, response, data){
+$httpClient.post('https://link-ip.nextdns.io/3994b1/40bcbadb4693c2a5', function(error, response, data){
   if (error) {
-$notification.post('NEXT DNS ', 'Internet error','');
-    $done({});
+console.log(error + '‼️');
   } else {
-$notification.post('NEXT DNS ', 'IPv4 (with linked IP)', 'ip :' + data);
-    $done({});
+console.log(data);
+$done();
   }
 });

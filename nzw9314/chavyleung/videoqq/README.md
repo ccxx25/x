@@ -1,4 +1,4 @@
-# 腾讯视频 (网页)
+# 腾讯视频
 
 > 代码已同时兼容 Surge & QuanX, 使用同一份签到脚本即可
 
@@ -6,15 +6,20 @@
 
 > 2020.2.17 增加移动端网页版签到 (请仔细阅读移动端网页版的操作说明) (MITM 新增一条、获取 Cookie 脚本新增一条、两脚本需要更新)
 
+> 2020.3.2 \[Beta\] 增加移动端抽奖脚本 (部分用户移动端签到时会提示: 无匹配的签到活动, 那就是移动端签不上了)
+
+> 2020.3.6 移动端每个用户仅可签两周，签到活动结果后，移动端签到不再弹通知
+
+> 2020.3.16 移动端签到活动已结束
+
 ## 配置 (Surge)
 
 ```properties
 [MITM]
-*.video.qq.com, v.qq.com
+*.video.qq.com
 
 [Script]
 http-request ^https:\/\/access.video.qq.com\/user\/auth_refresh script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/videoqq/videoqq.cookie.js
-http-request ^https?:\/\/v.qq.com\/x\/bu\/mobile_checkin script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/videoqq/videoqq.cookie.js
 cron "10 0 0 * * *" script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/videoqq/videoqq.js
 ```
 
@@ -22,11 +27,10 @@ cron "10 0 0 * * *" script-path=https://raw.githubusercontent.com/chavyleung/scr
 
 ```properties
 [MITM]
-*.video.qq.com, v.qq.com
+*.video.qq.com
 
 [rewrite_local]
 ^https:\/\/access.video.qq.com\/user\/auth_refresh url script-request-header videoqq.cookie.js
-^https?:\/\/v.qq.com\/x\/bu\/mobile_checkin url script-request-header videoqq.cookie.js
 
 [task_local]
 1 0 * * * videoqq.js
