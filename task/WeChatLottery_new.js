@@ -95,8 +95,8 @@ const WinURL = mainURL + 'users/list/2'
 const ShareURL = mainURL + 'share_lucky_get'
 const LuckyGiftURL = mainURL + 'lucky_gift'
 const TokenName = '活动抽奖'
-const TokenKey = 'wclotterynew'
-const UidKey = 'wcluid'
+const TokenKey = 'wclotterynew1'
+const UidKey = 'wcluid1'
 const datainfo = {}
 const $cmp = compatibility()
 
@@ -154,8 +154,8 @@ function Checkin() {
         const LotteryCheckin = {
             url: CheckinURL,
             headers: {
-                "token" : $cmp.read('wclotterynew'),
-                "uid" : $cmp.read('wcluid'),
+                "token" : $cmp.read('wclotterynew1'),
+                "uid" : $cmp.read('wcluid1'),
             }
         }
         $cmp.get(LotteryCheckin, function(error, response, data) {
@@ -168,8 +168,8 @@ function Checkin() {
                     let LotteryCheckindata = {
                         url: CheckindataURL,
                         headers: {
-                            "token" : $cmp.read('wclotterynew'),
-                            "uid" : $cmp.read('wcluid'),
+                            "token" : $cmp.read('wclotterynew1'),
+                            "uid" : $cmp.read('wcluid1'),
                         }
                     }
                     $cmp.get(LotteryCheckindata, function(error, response, data) {
@@ -196,8 +196,8 @@ function Checkin() {
 function Join() {
     return new Promise(resolve => {
         const commonheaders = {
-            "token" : $cmp.read('wclotterynew'),
-            "uid" : $cmp.read('wcluid'),
+            "token" : $cmp.read('wclotterynew1'),
+            "uid" : $cmp.read('wcluid1'),
         }
         const LotteryIndex = {
             url: IndexURL,
@@ -330,8 +330,8 @@ function Exchangerandom() {
         const LotteryExchangerandom = {
             url: ExchangeURL + '453',
             headers: {
-                "token" : $cmp.read('wclotterynew'),
-                "uid" : $cmp.read('wcluid'),
+                "token" : $cmp.read('wclotterynew1'),
+                "uid" : $cmp.read('wcluid1'),
             }
         }
         $cmp.post(LotteryExchangerandom, function(error, response, data) {
@@ -355,8 +355,8 @@ function Exchangerandom() {
 function Task() {
     return new Promise(resolve => {
         const commonheaders = {
-            "token" : $cmp.read('wclotterynew'),
-            "uid" : $cmp.read('wcluid'),
+            "token" : $cmp.read('wclotterynew1'),
+            "uid" : $cmp.read('wcluid1'),
         }
         const LotteryGetTask = {
             url: GetTaskURL,
@@ -449,8 +449,8 @@ function Task() {
 function Win() {
     return new Promise(resolve => {
         const commonheaders = {
-            "token" : $cmp.read('wclotterynew'),
-            "uid" : $cmp.read('wcluid'),
+            "token" : $cmp.read('wclotterynew1'),
+            "uid" : $cmp.read('wcluid1'),
         }
         for (let pagenum = 1; pagenum <= 3; pagenum++) {
             const LotteryWin = {
@@ -546,8 +546,8 @@ function Share() {
         const LotteryShare = {
             url: ShareURL,
             headers: {
-                "token" : $cmp.read('wclotterynew'),
-                "uid" : $cmp.read('wcluid'),
+                "token" : $cmp.read('wclotterynew1'),
+                "uid" : $cmp.read('wcluid1'),
             }
         }
         $cmp.get(LotteryShare, function(error, response, data) {
@@ -572,7 +572,7 @@ function GetData() {
         let LotteryData = {
             url: DataURL,
             headers: {
-                "token" : $cmp.read('wclotterynew'),
+                "token" : $cmp.read('wclotterynew1'),
             }
         }
         $cmp.get(LotteryData, function (error, response, data) {
@@ -605,8 +605,8 @@ function Exchange() {
             const LotteryExchange = {
                 url: ExchangeURL + exchangeId,
                 headers: {
-                    "token" : $cmp.read('wclotterynew'),
-                    "uid" : $cmp.read('wcluid'),
+                    "token" : $cmp.read('wclotterynew1'),
+                    "uid" : $cmp.read('wcluid1'),
                 }
             }
             $cmp.post(LotteryExchange, function(error, response, data) {
