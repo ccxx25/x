@@ -28,8 +28,8 @@ http:\/\/act\.gaoqingdianshi\.com\/\/api\/v4\/sign\/signin\?accelerate=0&ext=0&t
 */
 
 const cookieName = '电视家'
-const signurlKey = 'sy_signurl_dsj'
-const signheaderKey = 'sy_signheader_dsj'
+const signurlKey = 'sy_signurl_dsj1'
+const signheaderKey = 'sy_signheader_dsj1'
 const sy = init()
 const signurlVal = sy.getdata(signurlKey)
 const signheaderVal = sy.getdata(signheaderKey)
