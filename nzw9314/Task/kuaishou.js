@@ -2,15 +2,14 @@
 本脚本仅适用于快手极速版签到
 获取Cookie方法:
 1.将下方[rewrite_local]和[MITM]地址复制的相应的区域
-下，
+下
 2.APP登陆账号后，点击'红包',即可获取Cookie.
-
+3.非专业人士制作，欢迎各位大佬提出宝贵意见和指导
 仅测试Quantumult x，Surge、Loon自行测试
 by Macsuny
 感谢
 @Chavy
 @Nobyda
-
 ~~~~~~~~~~~~~~~~
 Surge 4.0 :
 [Script]
@@ -18,7 +17,7 @@ cron "0 9 * * *" script-path=https://raw.githubusercontent.com/Sunert/Scripts/ma
 # 获取快手极速版 Cookie.
 http-request https:\/\/nebula\.kuaishou\.com\/rest\/n\/nebula\/activity\/earn\/overview script-path=https://raw.githubusercontent.com/Sunert/Scripts/master/Task/kuaishou.js
 ~~~~~~~~~~~~~~~~
-QX 1.0.5 :
+QX 1.0.7+ :
 [task_local]
 0 9 * * * kuaishou.js
 
@@ -48,7 +47,7 @@ function GetCookie() {
     var CookieValue = $request.headers['Cookie'];
     
     if (sy.getdata(cookieKey) != (undefined || null)) {
-      if (sy.getdata(cookieKey) != cookieValue) {
+      if (sy.getdata(cookieKey) != CookieValue) {
         var cookie = sy.setdata(CookieValue, cookieKey);
         if (!cookie) {
           sy.msg("更新" + CookieName + "Cookie失败‼️", "", "");
@@ -59,7 +58,7 @@ function GetCookie() {
         }
       }
     } else {
-      var cookie = sy.setdata(CookieValue, CookieKey);
+      var cookie = sy.setdata(CookieValue, cookieKey);
       if (!cookie) {
         sy.msg("首次写入" + CookieName + "Cookie失败‼️", "", "");
       } else {
@@ -69,56 +68,60 @@ function GetCookie() {
   } else {
     sy.msg("写入" + CookieName + "Cookie失败‼️", "", "配置错误, 无法读取请求头, ");
   }
-sy.done
+sy.done()
 }
 
 function sign() {
-      let detail = ``
-      let subTitle = ``
+   return new Promise((resolve, reject) => {
 	 let signurl = {
 		url: 'https://nebula.kuaishou.com/rest/n/nebula/sign/sign',
-		headers: {
-			Cookie: cookieVal
-		}
-	}
+		headers: {Cookie: cookieVal}}
     sy.get(signurl, (error, response, data) => {
       sy.log(`${CookieName}, data: ${data}`)
       let result = JSON.parse(data)
       if(result.result == 10007){
         subTitle = `签到结果: ${result.error_msg}`
-        sy.msg(CookieName,subTitle,'')
-       }
-          sy.done()
-     })
-	let earnurl = {
+        sy.msg(CookieName,subTitle,'')}
+        sy.log(`错误代码: ${result.result}, 返回信息: ${result.error_msg}`)
+       })
+     earn()
+     info() 
+     resolve()
+   })
+ }
+function earn() {
+   return new Promise((resolve, reject) => {
+    earnurl = {
 		url: 'https://nebula.kuaishou.com/rest/n/nebula/sign/query',
-		headers: {
-			Cookie: cookieVal
-		}
-	}
+		headers: {Cookie: cookieVal}}
     sy.get(earnurl, (error, response, data) => {
-      sy.log(`${CookieName}, data: ${data}`)
+      //sy.log(`${CookieName}, data: ${data}`)
       let result = JSON.parse(data)
      if (result.data.nebulaSignInPopup.button == '立即签到'){ 
        subTitle = `签到成功: ${result.data.nebulaSignInPopup.subTitle}, ${result.data.nebulaSignInPopup.title}`
+      resolve()
       } else if (result.data.nebulaSignInPopup.button == '好的'){ 
        detail = `重复签到: ${result.data.nebulaSignInPopup.subTitle}, ${result.data.nebulaSignInPopup.title}`
+      resolve()
       }
+     })
     })
+  }
+function info() {
+   return new Promise((resolve, reject) => {
     let reurl = {url:'https://nebula.kuaishou.com/rest/n/nebula/activity/earn/overview',
-    headers: {Cookie:cookieVal}
-   }
+    headers: {Cookie:cookieVal}}
 	sy.get(reurl, (error, response, data) =>{
 	sy.log(`${CookieName}, data: ${data}`)
 	let result = JSON.parse(data) 
 	if (result.result == 1) {
-	        subTitle = `现金收益: 💵${result.data.allCash}元    金币收益: 💰${result.data.totalCoin}`
-			sy.msg(CookieName,subTitle,detail)	
+	     subTitle = `现金收益: 💵${result.data.allCash}元    金币收益: 💰${result.data.totalCoin}`
+          resolve()
 			} 
-          sy.log(`错误代码: ${result.result}, 返回信息: ${result.error_msg}`)
-	    })
-      }
-sy.done()
+         sy.msg(CookieName,subTitle,detail)
+	     })
+      })
+   }
       
 function init() {
   isSurge = () => {
