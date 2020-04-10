@@ -1,4 +1,4 @@
-const cookieName = '趣头条'
+const cookieName = '趣头条1'
 const signurlKey = 'senku_signurl_qtt1'
 const signheaderKey = 'senku_signheader_qtt1'
 const signbodyKey = 'senku_signbody_qtt1'
