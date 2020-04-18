@@ -7,7 +7,7 @@ $cmp.done()
 function Task() {
     let taskcoin = 0
     let taskCnt = 0
-    for (let t = 0; t <= 500; t++) {
+    for (let t = 0; t <= 200; t++) {
         const LotteryTask = {
             url: TaskURL + t,
             headers: {
