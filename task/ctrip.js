@@ -1,6 +1,6 @@
 /*
 mimt:m.ctrip.com
-111
+
 https:\/\/m\.ctrip\.com\/restapi\/soa2\/14946\/json\/userBaseInfo url script-request-header ctrip_cookie.js
 
 0 0 * * * ctrip.js
