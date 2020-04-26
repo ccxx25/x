@@ -1,7 +1,7 @@
-const cookieName = '字幕组'
-const cookieKey = 'chavy_cookie_zimuzu'
-const cookieAppKey = 'chavy_cookie_zimuzu_app'
-const authUrlAppKey = 'chavy_auth_url_zimuzu_app'
+const cookieName = '字幕组1'
+const cookieKey = 'chavy_cookie_zimuzu1'
+const cookieAppKey = 'chavy_cookie_zimuzu_app1'
+const authUrlAppKey = 'chavy_auth_url_zimuzu_app1'
 const chavy = init()
 if ($request.headers.Host == 'h5.rrhuodong.com') {
   const cookieVal = $request.headers['Cookie']
