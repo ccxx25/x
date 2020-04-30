@@ -11,8 +11,8 @@ function Task() {
         const LotteryTask = {
             url: TaskURL + t,
             headers: {
-                "token" : $cmp.read('wclotterynew1'),
-                "uid" : $cmp.read('wcluid1'),
+                "token" : $cmp.read('wclotterynew'),
+                "uid" : $cmp.read('wcluid'),
             }
         }
         $cmp.post(LotteryTask, function(error, response, data) {
