@@ -199,7 +199,7 @@ function getResult() {
     Promise.all(proarray).then((result) => {
         if(resultstr==''){
             //$notification.post(title, '', '暂无车位');
-            console.log('[Quantumult X]:暂无车位');
+            //console.log('[Quantumult X]:暂无车位');
         }
         else{
         $notification.post(title, '', resultstr);
