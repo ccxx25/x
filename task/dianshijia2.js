@@ -8,7 +8,7 @@
 3.非专业人士制作，欢迎各位大佬提出宝贵意见和指导
 
 4. 2020年4月18日 14:30变更surge地址
-5. 5月1日添加走路金币，默认最低领取50金币,
+5. 5月1日添加走路金币，间隔时间去刷
 
 仅测试Quantumult x，Surge、Loon自行测试
 By Macsuny
@@ -37,10 +37,9 @@ http:\/\/act\.gaoqingdianshi\.com\/\/api\/v4\/sign\/signin\? url script-request-
 ~~~~~~~~~~~~~~~~
 
 */
-const walkcn = '50';//走路金币最低领取值，可设置0-99
 const cookieName = '电视家 📺'
-const signurlKey = 'sy_signurl_dsj'
-const signheaderKey = 'sy_signheader_dsj'
+const signurlKey = 'sy_signurl_dsj1'
+const signheaderKey = 'sy_signheader_dsj1'
 const sy = init()
 const signurlVal = sy.getdata(signurlKey)
 const signheaderVal = sy.getdata(signheaderKey)
@@ -217,14 +216,14 @@ function award() {
 
 function walk() {
   return new Promise((resolve, reject) => {
-      let url = { url: `http://act.gaoqingdianshi.com/api/taskext/getWalk?step=20000`, headers: JSON.parse(signheaderVal)}
+      let url = { url: `http://act.gaoqingdianshi.com/api/taskext/getWalk?step=2000`, headers: JSON.parse(signheaderVal)}
       sy.get(url, (error, response, data) => 
       {
       sy.log(`data: ${data}`)
       const result = JSON.parse(data)
      walkcoin = result.data.unGetCoin
     if (walkcoin>50){
-let url = { url: `http://act.gaoqingdianshi.com/api/taskext/getCoin?code=walk&coin=1800&ext=1`, headers: JSON.parse(signheaderVal)}
+let url = { url: `http://act.gaoqingdianshi.com/api/taskext/getCoin?code=walk&coin=50&ext=0`, headers: JSON.parse(signheaderVal)}
       sy.get(url, (error, response, data) => 
       {
       const result = JSON.parse(data)
