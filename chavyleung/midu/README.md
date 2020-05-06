@@ -7,6 +7,10 @@
 > 感谢 [@GideonSenku](https://github.com/GideonSenku) Commit
 
 > 2020.04.29 添加阅读时长
+> 2020.04.30 添加签到、掷骰子
+> 2002.05.01 添加阅读双签
+> 2002.05.01 添加签到双签
+> 2020.05.04 使用python生成无限账户签到和阅读JavaScript脚本
 ## 配置 (Surge)
 
 ```properties
@@ -18,7 +22,7 @@ http-request ^https:\/\/apiwz\.midukanshu\.com script-path=https://raw.githubuse
 
 
 cron "10 0 0 * * *" script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/midu/miduSign.js
-cron "*/1 0 * * *" script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/midu/miduRead.js
+cron "*/1 * * * *" script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/midu/miduRead.js
 ```
 
 ## 配置 (QuanX)
@@ -44,15 +48,18 @@ apiwz.midukanshu.com
 
 ## 说明
 
+0. 越狱用户请关闭越狱状态,否则会视为作弊用户!!!
 1. 先把`apiwz.midukanshu.com`加到`[MITM]`
 2. 再配置重写规则:
    - Surge: 把两条远程脚本放到`[Script]`
    - QuanX: 把`midu.cookie.js`和`miduRead.js`&`miduSign.js`传到`On My iPhone - Quantumult X - Scripts` (传到 iCloud 相同目录也可, 注意要打开 quanx 的 iCloud 开关)
-3. 打开 APP 进入福利,系统提示: `获取Cookie: 成功`
-4. 把获取 Cookie 的脚本注释掉
-5. 建议将`task`执行次数改成每分钟执行以达到阅读时长
-6. 阅读时长获取Cookie:打开 APP 选取文章阅读， `书城` > `任意文章阅读` 等到提示获取Cookie成功即可
-7. 赞赏:邀请码`A1040276307`,链接`http://html34.qukantoutiao.net/qpr2/bBmQ.html?pid=5eb14518`
+3. 打开 APP 进入`我的` -> `疯狂摇摇乐`,系统提示: `签到:获取Cookie: 成功`
+4. 阅读时长获取Cookie:打开 APP 选取文章阅读， `书城` > `任意文章阅读` 等到提示获取Cookie成功即可
+5. 把获取 Cookie 的脚本注释掉
+6. 建议将`miduRead.js`脚本`task`执行次数改成每分钟执行以达到阅读时长
+7. 若要双签到,切换账号获取账户二的Cookie即可
+8. 赞赏:邀请码`A1040276307`,[直达链接](http://html34.qukantoutiao.net/qpr2/bBmQ.html?pid=5eb14518)
+9. 无限账户签到请移步:[GideonSenku](https://github.com/GideonSenku/scripts/tree/master/midu),目前支持仅制支持Surge
 > 第 1 条脚本是用来获取 cookie 的, 用浏览器访问一次获取 cookie 成功后就可以删掉或注释掉了, 但请确保在`登录成功`后再获取 cookie.
 
 > 第 2 条脚本是签到脚本, 每天`00:00:10`执行一次.
