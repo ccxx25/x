@@ -72,7 +72,7 @@ if (url.indexOf(spfree) != -1) {
 	body = JSON.stringify(obj);
  }
 if (url.indexOf(spcount) != -1) {
-	obj["todayCanWatchCount"] = 999;
+	obj["todayCanWatchCount"] = 9999;
 	body = JSON.stringify(obj);
  }
 if (url.indexOf(milk) != -1) {
@@ -93,7 +93,7 @@ if (url.indexOf(point) != -1) {
  }
 if (url.indexOf(acg) != -1) {
 	obj["isVip"] = true;
-   	obj["vipEndTime"] = "2222-02-22";
+   	obj["vipEndTime"] = "2222-05-21";
 	body = JSON.stringify(obj);
  }
 
