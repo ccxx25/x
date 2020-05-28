@@ -53,7 +53,7 @@ if (url.indexOf(checkvip2) != -1) {
  }
 
 if (url.indexOf(vipinfo) != -1) {
-	obj["nickName"] = "爱熬夜的好心人";
+	obj["nickName"] = "无敌大奶子";
    obj["vipLevel"] = 3;
    obj["vipEndTime"] = "2222-05-21";
    obj["cartoonVip"] = true;
@@ -72,7 +72,7 @@ if (url.indexOf(spfree) != -1) {
 	body = JSON.stringify(obj);
  }
 if (url.indexOf(spcount) != -1) {
-	obj["todayCanWatchCount"] = 9999;
+	obj["todayCanWatchCount"] = 999;
 	body = JSON.stringify(obj);
  }
 if (url.indexOf(milk) != -1) {
@@ -93,7 +93,7 @@ if (url.indexOf(point) != -1) {
  }
 if (url.indexOf(acg) != -1) {
 	obj["isVip"] = true;
-   	obj["vipEndTime"] = "2222-05-21";
+   	obj["vipEndTime"] = "2222-02-22";
 	body = JSON.stringify(obj);
  }
 
