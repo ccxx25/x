@@ -43,10 +43,10 @@ Cookie获取后，请注释掉Cookie地址。
 */
 const notify = 0; //开启通知1，关闭为0
 const logs = 0; // 日志开关，0为关，1为开
-const cookieName = '腾讯新闻'
+const cookieName = '腾讯新闻2'
 const sy = init()
-const signurlVal = sy.getdata('sy_signurl_txnews')
-const cookieVal = sy.getdata( 'sy_cookie_txnews')
+const signurlVal = sy.getdata('sy_signurl_txnews2')
+const cookieVal = sy.getdata( 'sy_cookie_txnews2')
 
 let isGetCookie = typeof $request !== 'undefined'
 if (isGetCookie) {
@@ -61,8 +61,8 @@ if ($request && $request.method != 'OPTIONS' && $request.url.match(/user\/event\
   const cookieVal = $request.headers['Cookie'];
   sy.log(`signurlVal:${signurlVal}`)
   sy.log(`cookieVal:${cookieVal}`)
-  if (signurlVal) sy.setdata(signurlVal, 'sy_signurl_txnews')
-  if (cookieVal) sy.setdata(cookieVal,  'sy_cookie_txnews')
+  if (signurlVal) sy.setdata(signurlVal, 'sy_signurl_txnews2')
+  if (cookieVal) sy.setdata(cookieVal,  'sy_cookie_txnews2')
   sy.msg(cookieName, `获取Cookie: 成功🎉`, ``)
   }
  }
@@ -157,7 +157,9 @@ function StepsTotal() {
 return new Promise((resolve, reject) => {
   const StepsUrl = {
     url: `https://api.inews.qq.com/activity/v1/activity/info/get?activity_id=${RedID}&${ID}`,
-   headers: {Cookie: cookieVal},
+   headers: {
+      Cookie: cookieVal,
+    },
   };
     sy.get(StepsUrl, (error, response, data) => {
      if(logs)sy.log(`${cookieName}红包统计- data: ${data}`)
@@ -189,7 +191,9 @@ function StepsTotal2() {
 return new Promise((resolve, reject) => {
   const StepsUrl = {
     url: `https://api.inews.qq.com/activity/v1/activity/notice/info?activity_id=${RedID}&${ID}`,
-   headers: {Cookie: cookieVal},
+   headers: {
+      Cookie: cookieVal,
+    },
   };
     sy.get(StepsUrl, (error, response, data) => {
      if(logs)sy.log(`${cookieName}阅读统计- data: ${data}`)
@@ -223,17 +227,15 @@ return new Promise((resolve, reject) => {
     body: `redpack_type=article&activity_id=${RedID}`
   }
    sy.post(cashUrl, (error, response, data) => {
-    if(logs)sy.log(`${cookieName}阅读红包- data: ${data}`)
+    sy.log(`${cookieName}阅读红包- data: ${data}`)
         let rcash = JSON.parse(data)
             readredpack =  Number()
-            redpackres =``
         if (rcash.ret == 0){
        for (i=0;i<rcash.data.award.length;i++){
         readredpack += rcash.data.award[i].num/100
             }
        redpackres += `【阅读红包】到账`+readredpack+` 元 🌷\n` 
            }
-    sy.log(redpackres)
       resolve()
       })
    })
@@ -249,10 +251,9 @@ return new Promise((resolve, reject) => {
     body: `redpack_type=video&activity_id=${RedID}`
   };
     sy.post(cashUrl, (error, response, data) => {
-    if(logs)sy.log(`${cookieName}视频红包-data:${data}`)
+    sy.log(`${cookieName}视频红包-data:${data}`)
         let vcash = JSON.parse(data)
             videoredpack= Number()
-            redpackres =``
         if (vcash.ret == 0){
        for (i=0;i<vcash.data.award.length;i++){
         videoredpack += vcash.data.award[i].num/100
@@ -260,7 +261,6 @@ return new Promise((resolve, reject) => {
         redpackres += `【视频红包】到账`+videoredpack+` 元 🌷\n` 
          }
        },100)
-    sy.log(redpackres)
      resolve()
       })
    })
@@ -348,3 +348,4 @@ function init() {
     return { isSurge, isQuanX, msg, log, getdata, setdata, get, post, done }
   }
 
+  

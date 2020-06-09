@@ -43,10 +43,10 @@ Cookie获取后，请注释掉Cookie地址。
 */
 const notify = 0; //开启通知1，关闭为0
 const logs = 0; // 日志开关，0为关，1为开
-const cookieName = '腾讯新闻'
+const cookieName = '腾讯新闻4'
 const sy = init()
-const signurlVal = sy.getdata('sy_signurl_txnews')
-const cookieVal = sy.getdata( 'sy_cookie_txnews')
+const signurlVal = sy.getdata('sy_signurl_txnews4')
+const cookieVal = sy.getdata( 'sy_cookie_txnews4')
 
 let isGetCookie = typeof $request !== 'undefined'
 if (isGetCookie) {
@@ -61,8 +61,8 @@ if ($request && $request.method != 'OPTIONS' && $request.url.match(/user\/event\
   const cookieVal = $request.headers['Cookie'];
   sy.log(`signurlVal:${signurlVal}`)
   sy.log(`cookieVal:${cookieVal}`)
-  if (signurlVal) sy.setdata(signurlVal, 'sy_signurl_txnews')
-  if (cookieVal) sy.setdata(cookieVal,  'sy_cookie_txnews')
+  if (signurlVal) sy.setdata(signurlVal, 'sy_signurl_txnews4')
+  if (cookieVal) sy.setdata(cookieVal,  'sy_cookie_txnews4')
   sy.msg(cookieName, `获取Cookie: 成功🎉`, ``)
   }
  }
