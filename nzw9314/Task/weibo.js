@@ -1,12 +1,15 @@
 /*
+更新时间: 2020-06-08 20:45
+
 本脚本仅适用于微博每日签到  
 获取Cookie方法:
 1.将下方[rewrite_local]和[MITM]地址复制的相应的区域下
-2.打开微博App获取Cookie.获取后请注释或禁用Cookie
+2.打开微博App，刷微博视频，获取Cookie，获取后请注释或禁用Cookie
 3.打开微博钱包点击签到，获取Cookie，
 4.钱包签到时获取Cookie,已经签到无法获取
 5.非专业人士制作，欢迎各位大佬提出宝贵意见和指导
 6.4月23日更新，更换微博签到Cookie,随时能获取，获取后请禁用
+
 仅测试Quantumult x，Surge、Loon自行测试
 by Macsuny
 
@@ -16,11 +19,22 @@ Surge 4.0 :
 weibo.js = type=cron,cronexp=35 5 0 * * *,script-path=https://raw.githubusercontent.com/Sunert/Scripts/master/Task/weibo.js,script-update-interval=0
 
 # 获取微博 Cookie.
-weibo.js = script-path=https://raw.githubusercontent.com/Sunert/Scripts/master/Task/weibo.js,type=http-request,pattern=https:\/\/api\.weibo\.cn\/\d\/video\/machine\?gsid
+weibo.js = type=http-request,pattern=https:\/\/api\.weibo\.cn\/\d\/video\/machine\?gsid,script-path=https://raw.githubusercontent.com/Sunert/Scripts/master/Task/weibo.js
 # 微博钱包签到Cookie
-weibo.js = script-path=https://raw.githubusercontent.com/Sunert/Scripts/master/Task/weibo.js,type=http-request,pattern=http-request,pattern=https:\/\/pay\.sc\.weibo\.com\/aj\/mobile\/home\/welfare\/signin\/do\?
+weibo.js = type=http-request,pattern=https:\/\/pay\.sc\.weibo\.com\/aj\/mobile\/home\/welfare\/signin\/do\?,script-path=https://raw.githubusercontent.com/Sunert/Scripts/master/Task/weibo.js
 
 ~~~~~~~~~~~~~~~~
+Loon 2.1.0+
+[Script]
+# 本地脚本
+cron "04 00 * * *" script-path=https://raw.githubusercontent.com/Sunert/Scripts/master/Task/weibo.js, enabled=true, tag=新浪微博
+
+http-request https:\/\/api\.weibo\.cn\/\d\/video\/machine\?gsid script-path=https://raw.githubusercontent.com/Sunert/Scripts/master/Task/weibo.js
+
+http-request https:\/\/pay\.sc\.weibo\.com\/aj\/mobile\/home\/welfare\/signin\/do\? script-path=https://raw.githubusercontent.com/Sunert/Scripts/master/Task/weibo.js
+
+-----------------
+
 QX 1.0.6+ :
 [task_local]
 0 9 * * * weibo.js
@@ -32,7 +46,7 @@ https:\/\/api\.weibo\.cn\/\d\/video\/machine\?gsid url script-request-header wei
 https:\/\/pay\.sc\.weibo\.com\/aj\/mobile\/home\/welfare\/signin\/do\? url script-request-header weibo.js
 
 ~~~~~~~~~~~~~~~~
-QX or Surge [MITM]
+[MITM]
 hostname = api.weibo.cn, pay.sc.weibo.com
 ~~~~~~~~~~~~~~~~
 */
@@ -121,27 +135,32 @@ function paysign() {
    let payurl =  {
       url: `https://pay.sc.weibo.com/aj/mobile/home/welfare/signin/do?_=${time}`,
      headers: JSON.parse(payheaderVal)}
-     sy.post(payurl, (error, response, data) => {
+sy.post(payurl, (error, response, data) => {
      sy.log(`${CookieName}钱包, data: ${data}`)
+   try{
      let result = JSON.parse(data)
      if (result.status == 1){
          subTitle += `  钱包签到成功 🎉`
          detail += `  钱包获取积分:`+ result.score+' 分'
          }  
-     else if (result.status == 2){
+     else if (result.code == 100000){
          subTitle += `   钱包: 重复签到`
-         //detail += `钱包: `+ result.msg
+         detail += ``
        }
      else {
          subTitle = `钱包签到失败❌`
          //detail += ` 钱包: `+result.msg
          }
        sy.msg(CookieName, subTitle, detail)
-       })
+        }
+    catch(e){
+         sy.msg(CookieName, subTitle+`  钱包Cookie失效 ❎`, detail)
+       }
+     })
     }
-  resolve()
   })
 }
+
 
 function init() {
   isSurge = () => {
