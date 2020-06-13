@@ -33,10 +33,10 @@ const repository = [
     name: "zZPigle 脚本",
     url: "https://github.com/zZPiglet/Task"
   },
-  //{
-    //name: "Orz-mini 图标",
-    //url: "https://github.com/Orz-3/mini"
-  //}
+  {
+    name: "Sunert 脚本",
+    url: "https://github.com/Sunert/Scripts/tree/master"
+  }
 ];
 
 const debug = false;

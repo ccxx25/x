@@ -3,37 +3,23 @@ const signurlKey = 'senku_signurl_yk'
 const signheaderKey = 'senku_signheader_yk'
 const signbodyKey = 'senku_signbody_yk'
 const senku = init()
-const signurlVal = senku.getdata(signurlKey)
-const signheaderVal = senku.getdata(signheaderKey)
-//const signBodyVal = senku.getdata(signbodyKey)
 
-sign()
-
-function sign() {
-  const url = { url: signurlVal, headers: JSON.parse(signheaderVal)/*, body: signBodyVal */}
-  senku.get(url, (error, response, data) => {
-    const result = JSON.parse(data)
-    const total = result.data.continuation_days
-//result.data['continuation_days'].total
-    //const ret = result.data.state
-    const ret1 = result.data.state
-    const ret = result.data['prize_config_response_list'][0].state
-    let subTitle = ``
-    let detail = ``
-    //if (ret == 1) {
-    if (ret1 == false) {
-      const num = //result.data['remaining_days'].num
-result.data.remaining_days
-      subTitle = `签到结果: 成功`
-      detail = `已连续签到:${total}天,距离领取最高奖励还有: ${num}天`
-    } else if (ret1 == true) {
-      subTitle = `签到结果: 成功 (重复签到)`
-    } else {
-      subTitle = `签到结果: 失败`
-    }
-    senku.msg(cookieName, subTitle, detail)
-    senku.done()
-  })
+const requrl = $request.url
+if ($request && $request.method != 'OPTIONS') {
+  const signurlVal = requrl
+  const signheaderVal = JSON.stringify($request.headers)
+  //const signbodyVal = $request.body
+  //const cmd = JSON.parse($request.body).cmd
+  //senku.log(`signurlVal:${signurlVal}`)
+  //senku.log(`signheaderVal:${signheaderVal}`)
+  //senku.log(`signbodyVal:${signbodyVal}`)
+  if (signurlVal) senku.setdata(signurlVal, signurlKey)
+  if (signheaderVal) senku.setdata(signheaderVal, signheaderKey)
+  senku.msg(cookieName, `获取Cookie: 成功`, ``)
+  //if (signbodyVal && cmd=='task.revisionSignInGetAward') {
+    //senku.setdata(signbodyVal, signbodyKey)
+    //senku.msg(cookieName, `获取Cookie: 成功`, ``)
+  //}  
 }
 
 function init() {
@@ -62,7 +48,7 @@ function init() {
     }
     if (isQuanX()) {
       url.method = 'GET'
-      $task.fetch(url).then((resp) => cb(null, resp, resp.body))
+      $task.fetch(url).then((resp) => cb(null, {}, resp.body))
     }
   }
   post = (url, cb) => {
@@ -71,7 +57,7 @@ function init() {
     }
     if (isQuanX()) {
       url.method = 'POST'
-      $task.fetch(url).then((resp) => cb(null, resp, resp.body))
+      $task.fetch(url).then((resp) => cb(null, {}, resp.body))
     }
   }
   done = (value = {}) => {
@@ -79,3 +65,4 @@ function init() {
   }
   return { isSurge, isQuanX, msg, log, getdata, setdata, get, post, done }
 }
+senku.done()
