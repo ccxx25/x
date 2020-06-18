@@ -15,8 +15,17 @@ const cookie = $prefs.valueForKey('CookieJD2')
 const name = '京东水果'
 
 var shareCodes = [ // 这个列表填入你要助力的好友的shareCode
-    '3759d468c60d4b5a834974eed4e12d8a',
     //'2d9375fd27fb433c94e181454cbf304c',
+
+    '3759d468c60d4b5a834974eed4e12d8a',
+    '2c16353e3af04585b404da175e8ce4f6',
+    '6fbd26cc27ac44d6a7fed34092453f77',
+
+    '25d6ee2b2dc348bca4e7be5b78504af7',
+
+    '61ff5c624949454aa88561f2cd721bf6',
+
+
 ]
 var Task = step();
 Task.next();
