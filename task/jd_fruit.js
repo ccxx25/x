@@ -1,3 +1,137 @@
+/******************** 转换器 ********************/
+let isQuantumultX = $task != undefined;
+let isSurge = $httpClient != undefined;
+let isLoon = isSurge && typeof $loon != undefined;
+var $task = isQuantumultX ? $task : {};
+var $httpClient = isSurge ? $httpClient : {};
+var $prefs = isQuantumultX ? $prefs : {};
+var $persistentStore = isSurge ? $persistentStore : {};
+var $notify = isQuantumultX ? $notify : {};
+var $notification = isSurge ? $notification : {};
+if (isQuantumultX) {
+    var errorInfo = {
+        error: "",
+    };
+    $httpClient = {
+        get: (url, cb) => {
+            var urlObj;
+            if (typeof url == "string") {
+                urlObj = {
+                    url: url,
+                }
+            } else {
+                urlObj = url
+            }
+            $task.fetch(urlObj).then((response) => {
+                cb(undefined, response, response.body)
+            }, (reason) => {
+                errorInfo.error = reason.error;
+                cb(errorInfo, response, "")
+            })
+        }, post: (url, cb) => {
+            var urlObj;
+            if (typeof url == "string") {
+                urlObj = {
+                    url: url,
+                }
+            } else {
+                urlObj = url
+            }
+            url.method = "POST"
+            $task.fetch(urlObj).then((response) => {
+                cb(undefined, response, response.body)
+            }, (reason) => {
+                errorInfo.error = reason.error;
+                cb(errorInfo, response, "")
+            })
+        },
+    }
+}
+if (isSurge) {
+    $task = {
+        fetch: (url) => {
+            return new Promise((resolve, reject) => {
+                if (url.method == "POST") {
+                    $httpClient.post(url, (error, response, data) => {
+                        if (response) {
+                            response.body = data;
+                            resolve(response, {
+                                error: error,
+                            })
+                        } else {
+                            resolve(null, {
+                                error: error,
+                            })
+                        }
+                    })
+                } else {
+                    $httpClient.get(url, (error, response, data) => {
+                        if (response) {
+                            response.body = data;
+                            resolve(response, {
+                                error: error,
+                            })
+                        } else {
+                            resolve(null, {
+                                error: error,
+                            })
+                        }
+                    })
+                }
+            })
+        },
+    }
+}
+if (isQuantumultX) {
+    $persistentStore = {
+        read: (key) => {
+            return $prefs.valueForKey(key)
+        }, write: (val, key) => {
+            return $prefs.setValueForKey(val, key)
+        },
+    }
+}
+if (isSurge) {
+    $prefs = {
+        valueForKey: (key) => {
+            return $persistentStore.read(key)
+        }, setValueForKey: (val, key) => {
+            return $persistentStore.write(val, key)
+        },
+    }
+}
+if (isQuantumultX) {
+    $notify = ((notify) => {
+        return function (title, subTitle, detail, url = undefined) {
+            detail = url === undefined ? detail : `${detail}\n点击链接跳转: ${url}`;
+            notify(title, subTitle, detail)
+        }
+    })($notify);
+    $notification = {
+        post: (title, subTitle, detail, url = undefined) => {
+            detail = url === undefined ? detail : `${detail}\n点击链接跳转: ${url}`;
+            $notify(title, subTitle, detail)
+        },
+    }
+}
+if (isSurge && !isLoon) {
+    $notification.post = ((notify) => {
+        return function (title, subTitle, detail, url = undefined) {
+            detail = url === undefined ? detail : `${detail}\n点击链接跳转: ${url}`;
+            notify.call($notification, title, subTitle, detail)
+        }
+    })($notification.post);
+    $notify = (title, subTitle, detail, url = undefined) => {
+        detail = url === undefined ? detail : `${detail}\n点击链接跳转: ${url}`;
+        $notification.post(title, subTitle, detail)
+    }
+}
+if (isLoon) {
+    $notify = (title, subTitle, detail, url = undefined) => {
+        $notification.post(title, subTitle, detail, url)
+    }
+}
+/******************** 转换器 ********************/
 //jd免费水果 搬的https://github.com/liuxiaoyucc/jd-helper/blob/a6f275d9785748014fc6cca821e58427162e9336/fruit/fruit.js
 //只能quanx用，request里面的请求跟获取cookie的地方改改，别的app应该也能用
 
@@ -15,7 +149,6 @@ const cookie = $prefs.valueForKey('CookieJD')
 const name = '京东水果'
 
 var shareCodes = [ // 这个列表填入你要助力的好友的shareCode
-
     //'3759d468c60d4b5a834974eed4e12d8a',
     '2d9375fd27fb433c94e181454cbf304c',
     '2c16353e3af04585b404da175e8ce4f6',
@@ -109,8 +242,16 @@ function* step() {
                 // message += '当前不在定时领水时间断或者已经领过\n'
                 console.log('当前不在定时领水时间断或者已经领过')
             }
+            const masterHelpResult = yield masterHelpTaskInitForFarm();
+            console.log("初始化助力信息", masterHelpResult);
+            if (masterHelpResult.code === '0' && !masterHelpResult.masterGotFinal && (masterHelpResult.masterHelpPeoples && masterHelpResult.masterHelpPeoples.length >=5)) {
+                // 已有五人助力。领取助力后的奖励
+                const masterGotFinished = yield masterGotFinishedTaskForFarm();
+                if (masterGotFinished.code === '0') {
+                    console.log(`已成功领取好友助力奖励：【${masterGotFinished.amount}】滴水`);
+                }
+            }
             //助力
-            // masterHelpTaskInitForFarm
             console.log('开始助力好友')
             let salveHelpAddWater = 0;
             for (let code of shareCodes) {
@@ -119,11 +260,20 @@ function* step() {
                     continue
                 }
                 console.log(`开始助力好友: ${code}`);
-                let helpResult = yield masterHelp(code)
-                if (helpResult.code == 0 && helpResult.helpResult.code == 0) {
-                    salveHelpAddWater += helpResult.helpResult.salveHelpAddWater
-                } else {
-                    console.log(`助理好友结果: ${JSON.stringify(helpResult)}`);
+                let helpResult = yield masterHelp(code);
+                if (helpResult.code == 0) {                    
+                    if (helpResult.helpResult.code === '0') {
+                        //助力成功
+                        salveHelpAddWater += helpResult.helpResult.salveHelpAddWater;
+                        console.log(`【助力好友结果】: 已成功给【${helpResult.helpResult.masterUserInfo.nickName}】助力`);
+                    } else if (helpResult.helpResult.code === '8'){
+                        console.log(`【助力好友结果】: 助力【${helpResult.helpResult.masterUserInfo.nickName}】失败，您今天助力次数已耗尽`);
+                    } else if (helpResult.helpResult.code === '9'){
+                        console.log(`【助力好友结果】: 之前给【${helpResult.helpResult.masterUserInfo.nickName}】助力过了`);
+                    } else if (helpResult.helpResult.code === '10') {
+                        console.log(`【助力好友结果】: 好友【${helpResult.helpResult.masterUserInfo.nickName}】已满五人助力`);
+                    }   
+                    console.log(`【今日助力次数还剩】${helpResult.helpResult.remainTimes}次`);            
                 }
             }
             if (salveHelpAddWater > 0) {
@@ -317,7 +467,11 @@ function masterHelpTaskInitForFarm() {
     let functionId = arguments.callee.name.toString();
     request(functionId);
 }
-
+function masterGotFinishedTaskForFarm() {
+	console.log("领取助力完成后的水滴")
+	let functionId = arguments.callee.name.toString();
+	request(functionId);
+}
 function masterHelp() {
     request(`initForFarm`, { imageUrl: "", nickName: "", shareCode: arguments[0], babelChannel: "3", version: 2, channel: 1 });
 }
