@@ -33,6 +33,8 @@ $.pre_hours = 24     //预测未来24小时，最多48小时
 
 !(async () => {
     $.log('', `🔔 ${$.name}, 开始!`, '')
+    $.msg($.name, "🚫暂停使用【长按查看具体说明】", "😭这是基于爬虫拿来的数据，网站有反爬虫策略，偶尔出现请求超时的问题。\n🌧而这会导致quanx或者loon重启，建议同学们换用其他大佬的天气脚本。\n🙁后续会尝试找稳定的天气接口，有需要的小伙伴可以点击此通知关注github。\n\t\t\t凌晨2点，辣鸡toulanboy", "https://github.com/toulanboy/scripts")
+    return
     if ($.weather_url == "") {
         $.weather_url = $.getdata('tlb_weather_url')
     }
@@ -60,7 +62,13 @@ function getw() {
             }
         }
         $.get(url, (error, response, data) => {
-            if (error) throw new Error(error)
+            if (error) {
+                $.msg($.name, "", "🚫请求出现错误，具体看日志")
+                console.log("🚫请求出现错误，具体如下：")
+                console.log(error)
+                resove()
+                throw new Error(error)
+            }
             body = response.body
             city_name = body.match(/locationCard">.*?locationName--.*?>(.*?)</)
             if (city_name != undefined) {
@@ -107,15 +115,16 @@ function getw() {
             else {
                 console.log("🌟 当前降雨概率都不大于50%， 故不弹出系统通知。")
             }
+            resove()
         })
     })
 }
 // prettier-ignore, @chavyleung
 function Env(s) {
-    this.name = s, this.data = null, this.logs = [], this.isSurge = (() => "undefined" != typeof $httpClient), this.isQuanX = (() => "undefined" != typeof $task), this.isNode = (() => "undefined" != typeof module && !!module.exports), this.log = ((...s) => {
+    this.name = s, this.data = null, this.logs = [], this.isSurge = (() => "undefined" != typeof $httpClient), this.isQuanX = (() => "undefined" != typeof $task), this.isLoon = (() => "undefined" != typeof $loon),this.isNode = (() => "undefined" != typeof module && !!module.exports), this.log = ((...s) => {
         this.logs = [...this.logs, ...s], s ? console.log(s.join("\n")) : console.log(this.logs.join("\n"))
-    }), this.msg = ((s = this.name, t = "", i = "") => {
-        this.isSurge() && $notification.post(s, t, i), this.isQuanX() && $notify(s, t, i);
+    }), this.msg = ((s = this.name, t = "", i = "", opts="") => {
+        this.isLoon() && $notification.post(s, t, i, opts), this.isSurge() && !this.isLoon() && $notification.post(s, t, i), this.isQuanX() && $notify(s, t, i, { "open-url": opts});
         const e = ["", "==============\ud83d\udce3\u7cfb\u7edf\u901a\u77e5\ud83d\udce3=============="];
         s && e.push(s), t && e.push(t), i && e.push(i), console.log(e.join("\n"))
     }), this.getdata = (s => {
