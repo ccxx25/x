@@ -1,5 +1,3 @@
-
-
 /*
 [task_local]
 # 京东金融领白条券  9点执行（周五券要9点开始领）
@@ -7,28 +5,41 @@
 */
 const $ = new Env('天天领白条券');
 const Key = '';//单引号内自行填写您抓取的京东Cookie
+const DualKey = '';//双账户
 //直接用NobyDa的jd cookie
-const cookie = Key ? Key : $.getdata('CookieJD');
+const cookie ={CookieJD: [Key ? Key : $.getdata('CookieJD'),DualKey ? DualKey : $.getdata('CookieJD2')]};
+var CookieJD = '';//实际使用的cookie
 const JR_API_HOST = 'https://jrmkt.jd.com/activity/newPageTake/takePrize';
-
 const Prize = {
-	//每周五领55-5券 每月两次
-	PrizeFriday :{ Id : `Q96200731141823255924Qy`, Body : `activityId=Q96200731141823255924Qy&eid=4NCPNCJW746YAZQW6X7FBOXQW5XSZU2QLEKSFJARZS7ZP2ZDYWDRC2NG3WCBI6UZKQ54W5VKU7QAPA2IX7K4BZ24LE&fp=1be74839b572280deb0550b5f46d4a3b`},	
-	//每日领随机白条券
-	PrizeDaily : {Id : `Q229326314441137002k96C`, Body :`activityId=Q229326314441137002k96C&eid=4NCPNCJW746YAZQW6X7FBOXQW5XSZU2QLEKSFJARZS7ZP2ZDYWDRC2NG3WCBI6UZKQ54W5VKU7QAPA2IX7K4BZ24LE&fp=68dcc2c6d938eab6c4aac7418be1aaba`}
-    }
+  //每周五领55-5券 每月两次
+  PrizeFriday :{ Id : `Q96200731141823255924Qy`, Body : `activityId=Q96200731141823255924Qy&eid=${randomWord(false,90).toUpperCase()}&fp=${randomWord(false,32).toLowerCase()}`},
+  //每日领随机白条券
+  PrizeDaily : { Id : `Q229326314441137002k96C`, Body : `activityId=Q229326314441137002k96C&eid=${randomWord(false,90).toUpperCase()}&fp=${randomWord(false,32).toLowerCase()}`}
+}
 	
 !(async () => {
-  if (!cookie) {
+  if (!cookie.CookieJD[0]) {
     $.msg($.name, '【提示】请先获取cookie\n直接使用NobyDa的京东签到获取', 'https://bean.m.jd.com/', {"open-url": "https://bean.m.jd.com/"});
     return;
   }
-  $.Prize = {};
-  var date=new Date();
-  await takePrize(Prize.PrizeDaily.Body,"PrizeDaily","天天领");
-  if (date.getDay() == 5 ) await takePrize(Prize.PrizeFriday.Body,"PrizeFriday","周五领");
-  //await takePrize(Prize.PrizeFriday.Body,"PrizeFriday","周五领");
-  await msgShow();
+  for (let i = 0; i < cookie.CookieJD.length; i++) {
+    CookieJD = cookie.CookieJD[i];
+    if (CookieJD) {
+      $.Prize = {};
+      let date = new Date();
+      await takePrize(Prize.PrizeDaily.Body, "PrizeDaily", "天天领");
+      if ($.Prize["PrizeDaily"].respCode == "00001" )
+      {
+        $.msg($.name, '【提示】请先获取cookie\n直接使用NobyDa的京东签到获取', 'https://bean.m.jd.com/', {"open-url": "https://bean.m.jd.com/"});
+        continue;
+      }
+      if (date.getDay() == 5) {
+        await $.wait(800); //延迟执行，防止提示活动火爆
+        await takePrize(Prize.PrizeFriday.Body,"PrizeFriday","周五领");
+      }
+      await msgShow();
+      }
+    }
 })()
     .catch((e) => {
       $.log('', `❌ ${$.name}, 失败! 原因: ${e}!`, '')
@@ -38,13 +49,14 @@ const Prize = {
     })
 
 
-function takePrize(body,PrizeName,Desc) {
+function takePrize(body,PrizeName,Desc,timeout = 0) {
     return new Promise((resolve) => {
-	let url = {	
+    setTimeout( ()=>{
+	let url = {
 	url: JR_API_HOST,
     body : body,
-	headers: {
-      'Cookie' : cookie,
+    headers: {
+	  'Cookie' : CookieJD,
 	  'X-Requested-With' : `XMLHttpRequest`,
 	  'Accept' : `application/json, text/javascript, */*; q=0.01`,
 	  'Origin' : `https://jrmkt.jd.com`,
@@ -55,15 +67,10 @@ function takePrize(body,PrizeName,Desc) {
 	  'Referer' : `https://jrmkt.jd.com/ptp/wl/vouchers.html?activityId=${Prize[PrizeName].Id}`,
 	  'Accept-Language' : `zh-cn`
     }
-  }		
+  }
     $.post(url, (err, resp, data) => {
       try {
         data = JSON.parse(data);
-		if (data.respCode == "00001" )
-		{
-		    $.msg($.name, '【提示】请先获取cookie\n直接使用NobyDa的京东签到获取', 'https://bean.m.jd.com/', {"open-url": "https://bean.m.jd.com/"});	
-            return;			
-		}
         $.Prize[PrizeName] = data;
 		$.Prize[PrizeName].Desc = Desc;
       } catch (e) {
@@ -72,10 +79,27 @@ function takePrize(body,PrizeName,Desc) {
         resolve()
       }
     })
+    },timeout)
   })
 }
 
+function randomWord(randomFlag, min, max){
+    let str = "",
+        range = min,
+        arr = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
+    // 随机产生
+    if(randomFlag){
+      range = Math.round(Math.random() * (max-min)) + min;
+    }
+    for(let i=0; i<range; i++){
+      pos = Math.round(Math.random() * (arr.length-1));
+      str += arr[pos];
+    }
+    return str;
+}
+
 function msgShow() {
+  $.message = "";
   for (var i in $.Prize) {   
     if (typeof($.message) == "undefined") $.message = `用户名【${$.Prize[i].nickName}】\n`;
 	if ($.Prize[i].respCode === "00000") {
