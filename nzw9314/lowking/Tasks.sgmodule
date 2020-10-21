@@ -21,7 +21,7 @@ qq会员签到 = type=cron,cronexp="0 3 12 * * ?",wake-system=1,timeout=30,scrip
 
 京东多合一签到 = type=cron,cronexp="30 3 0,20 * * ?",wake-system=1,timeout=120,script-path=https://raw.githubusercontent.com/NobyDa/Script/master/JD-DailyBonus/JD_DailyBonus.js,script-update-interval=0,max-size=-1
 
-腾讯视频 = type=cron,cronexp="0 4 0 * * ?",wake-system=1,script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/videoqq/videoqq.js,script-update-interval=0
+#腾讯视频 = type=cron,cronexp="0 4 0 * * ?",wake-system=1,script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/videoqq/videoqq.js,script-update-interval=0
 
 哔哩哔哩 = type=cron,cronexp="30 4 0 * * ?",wake-system=1,script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/bilibili/bilibili.js,script-update-interval=0
 哔哩哔哩硬币 = type=cron,cronexp="0 5 0 * * ?",wake-system=1,script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/bilibili/bilibili.silver2coin.js,script-update-interval=0
@@ -34,7 +34,7 @@ qq会员签到 = type=cron,cronexp="0 3 12 * * ?",wake-system=1,timeout=30,scrip
 
 索尼俱乐部 = type=cron,cronexp="0 7 0 * * ?",wake-system=1,script-path=https://raw.githubusercontent.com/lowking/Scripts/master/sony/sonyClub.js,script-update-interval=0
 
-#斗鱼鱼吧 = type=cron,cronexp="30 7 0 * * ?",wake-system=1,script-path=https://raw.githubusercontent.com/demo2099/jscool/master/Task/yubaSign.js,script-update-interval=0
+斗鱼鱼吧 = type=cron,cronexp="30 7 0 * * ?",wake-system=1,script-path=https://raw.githubusercontent.com/lowking/Scripts/master/douyu/yubaSign.js,script-update-interval=0
 
 什么值得买 = type=cron,cronexp="0 8 0 * * ?",wake-system=1,script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/smzdm/smzdm.js,script-update-interval=0
 
@@ -42,9 +42,11 @@ qq会员签到 = type=cron,cronexp="0 3 12 * * ?",wake-system=1,timeout=30,scrip
 
 吾爱破解签到 = type=cron,cronexp="0 9 0 * * ?",wake-system=1,script-path=https://raw.githubusercontent.com/NobyDa/Script/master/52pojie-DailyBonus/52pojie.js,script-update-interval=0
 
+取关京东店铺和商品 = type=cron,cronexp="30 9 0 * * ?",wake-system=1,script-path=https://raw.githubusercontent.com/lxk0301/scripts/master/jd_unsubscribe.js,script-update-interval=0
+
 epic = type=cron,cronexp="0 0 10 * * 6",wake-system=1,control-api=1,script-path=https://raw.githubusercontent.com/Peng-YM/QuanX/master/Tasks/epic.js,script-update-interval=0
 
-彩云天气 = type=cron,cronexp="0 6-20 * * *",wake-system=1,control-api=1,script-path=https://raw.githubusercontent.com/Peng-YM/QuanX/master/Tasks/caiyun.js,script-update-interval=0
+#彩云天气 = type=cron,cronexp="0 6-20 * * *",wake-system=1,control-api=1,script-path=https://raw.githubusercontent.com/Peng-YM/QuanX/master/Tasks/caiyun.js,script-update-interval=0
 
 哔哩哔哩番剧监控 = type=cron,cronexp="*/29 6-23 * * *",wake-system=1,control-api=1,script-path=https://raw.githubusercontent.com/lowking/Scripts/master/bilibili/bangumiMonitor.js,script-update-interval=0
 

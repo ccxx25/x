@@ -11,12 +11,12 @@ $tool.get('https://dict.youdao.com/infoline/style/cardList?mode=publish&client=m
     let title = 'Clock' + (isAM ? ' in' : ' out') + (isAM ? ' ☀️' : ' 🌙');
     let subtitle = '';
     let scheme = 'dingtalk://dingtalkclient/page/link?url=https://attend.dingtalk.com/attend/index.html';
-    let content = scheme;
+    let content = "";
     let option = {"open-url" : scheme};
     if (!error) {
         if (obj && obj.length > 1) {
             let yi = obj[1];
-            content = yi.title + '\n' + yi.summary + '\n\n' + content;
+            content = yi.title + '\n' + yi.summary;
             option["media-url"] = yi.image[0];
         }
     }
@@ -33,14 +33,16 @@ function Tool() {
             return (null)
         }
     })()
-    _isSurge = typeof $httpClient != "undefined"
+    _isLoon = typeof $loon !== "undefined";
+    _isSurge = typeof $httpClient != "undefined" && !_isLoon;
     _isQuanX = typeof $task != "undefined"
     this.isSurge = _isSurge
     this.isQuanX = _isQuanX
     this.isResponse = typeof $response != "undefined"
     this.notify = (title, subtitle, message, option) => {
         if (_isQuanX) $notify(title, subtitle, message, option)
-        if (_isSurge) $notification.post(title, subtitle, message, option["open-url"])
+        if (_isSurge) $notification.post(title, subtitle, message, {"url":option["open-url"]})
+        if (_isLoon) $notification.post(title, subtitle, message, option["open-url"])
         if (_node) console.log(JSON.stringify({ title, subtitle, message }));
     }
     this.write = (value, key) => {

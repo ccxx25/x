@@ -1,27 +1,33 @@
 /*
 京东萌宠助手 搬得https://github.com/liuxiaoyucc/jd-helper/blob/master/pet/pet.js
-更新时间:2020-07-28
+更新时间:2020-08-28
 // quantumultx
 [task_local]
 #东东萌宠
-5 6-18/6 * * * https://raw.githubusercontent.com/nzw9314/QuantumultX/master/Task/jd_pet.js, tag=东东萌宠, img-url=https://raw.githubusercontent.com/znz1992/Gallery/master/jdmc.png, enabled=true
+5 6-18/6 * * * https://raw.githubusercontent.com/lxk0301/scripts/master/jd_pet.js, tag=东东萌宠, img-url=https://raw.githubusercontent.com/znz1992/Gallery/master/jdmc.png, enabled=true
 // Loon
 [Script]
-cron "5 6-18/6 * * *" script-path=https://raw.githubusercontent.com/nzw9314/QuantumultX/master/Task/jd_pet.js,tag=东东萌宠
+cron "5 6-18/6 * * *" script-path=https://raw.githubusercontent.com/lxk0301/scripts/master/jd_pet.js,tag=东东萌宠
+// Surge
+东东萌宠 = type=cron,cronexp="5 6-18/6 * * *",wake-system=1,timeout=20,script-path=https://raw.githubusercontent.com/lxk0301/scripts/master/jd_pet.js
 互助码shareCode请先手动运行脚本查看打印可看到
 一天只能帮助5个人。多出的助力码无效
 注：如果使用Node.js, 需自行安装'crypto-js,got,http-server,tough-cookie'模块. 例: npm install crypto-js http-server tough-cookie got --save
 */
 const name = '东东萌宠';
 const $ = new Env(name);
-const Key = '';//单引号内自行填写您抓取的京东Cookie
-//直接用NobyDa的jd cookie
-const cookie =  Key ? Key : $.getdata('CookieJD');
+
+// =======node.js使用说明======
+//Node.js用户请在jdCookie.js处填写京东ck;
+const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
+
+//ios等软件用户直接用NobyDa的jd cookie
+const cookie = jdCookieNode.CookieJD ? jdCookieNode.CookieJD : $.getdata('CookieJD');
 //京东接口地址
 const JD_API_HOST = 'https://api.m.jd.com/client.action';
 let jdNotify = $.getdata('jdPetNotify');
 let shareCodes = [ // 这个列表填入你要助力的好友的shareCode, 最多可能是5个
-  'MTAxODcxOTI2NTAwMDAwMDAwMDc4MDExNw==',
+  'MTAxODc2NTEzMjAwMDAwMDAzMDI3MTMyOQ==',
   'MTAxODcxOTI2NTAwMDAwMDAyNjA4ODQyMQ==',
   'MTAxODc2NTEzMDAwMDAwMDAwNTUwNDUxMw==',
   'MTAxODc2NTEzOTAwMDAwMDAxODQ5MDg5NQ==',
@@ -45,7 +51,7 @@ if (isBox) {
     }
   }
 }
-let petInfo = null, taskInfo = null, message = '', subTitle = '', goodsUrl = '', taskInfoKey = [];
+let petInfo = null, taskInfo = null, message = '', subTitle = '', goodsUrl = '', taskInfoKey = [], option = {};
 
 //按顺序执行, 尽量先执行不消耗狗粮的任务, 避免中途狗粮不够, 而任务还没做完
 let function_map = {
@@ -100,10 +106,7 @@ function* entrance() {
     }
     yield feedPetsAgain();//所有任务做完后，检测剩余狗粮是否大于110g,大于就继续投食
     yield energyCollect();
-    let option = {
-      "media-url" : goodsUrl
-    }
-
+    option['media-url'] = goodsUrl;
     if (!jdNotify || jdNotify === 'false') {
       $.msg(name, subTitle, message, option);
     }
@@ -123,7 +126,7 @@ function energyCollect() {
         if (response.code === '0') {
             // message += `【第${petInfo.medalNum + 2}块勋章完成进度】：${response.result.medalPercent}%，还需投食${response.result.needCollectEnergy}g狗粮\n`;
             // message += `【已获得勋章】${petInfo.medalNum + 1}块，还需收集${petInfo.goodsInfo.exchangeMedalNum - petInfo.medalNum - 1}块即可兑换奖品“${petInfo.goodsInfo.goodsName}”\n`;
-          message += `【第${response.result.medalNum + 1}块勋章完成进度】${response.result.medalPercent}%，还需投食${response.result.needCollectEnergy}g\n`;
+          message += `【第${response.result.medalNum + 1}块勋章完成进度】${response.result.medalPercent}%，还需收集${response.result.needCollectEnergy}好感\n`;
           message += `【已获得勋章】${response.result.medalNum}块，还需收集${response.result.needCollectMedalNum}块即可兑换奖品“${petInfo.goodsInfo.goodsName}”\n`;
         }
         gen.next();
@@ -299,9 +302,9 @@ function browseSingleShopInit2() {
         if (response2.code === '0' && response2.resultCode === '0') {
           message += `【冰淇淋会场】获取狗粮${response2.result.reward}g\n`;
         }
-        gen.next();
       })
     }
+    gen.next();
   })
 }
 function browseSingleShopInit3() {
@@ -316,9 +319,9 @@ function browseSingleShopInit3() {
         if (response2.code === '0' && response2.resultCode === '0') {
           message += `【去参与星品解锁计划】获取狗粮${response2.result.reward}g\n`;
         }
-        gen.next();
       })
     }
+    gen.next();
   })
 }
 // 三餐签到, 每天三段签到时间
@@ -367,8 +370,15 @@ function initPetTown() {
               $.done();
               return
             }
-            goodsUrl = response.result.goodsInfo && response.result.goodsInfo.goodsUrl;
+            goodsUrl = petInfo.goodsInfo && petInfo.goodsInfo.goodsUrl;
             // console.log(`初始化萌宠信息完成: ${JSON.stringify(petInfo)}`);
+            if (petInfo.petStatus === 5 && petInfo.showHongBaoExchangePop) {
+              option['open-url'] = "openApp.jdMobile://";
+              option['media-url'] = goodsUrl;
+              $.msg($.name, `【提醒⏰】${petInfo.goodsInfo.goodsName}已可领取`, '请去京东APP或微信小程序查看', option);
+              $.done();
+              return
+            }
             console.log(`\n【您的互助码shareCode】 ${petInfo.shareCode}\n`);
           gen.next();
         } else if (response.code === '0' && response.resultCode === '2001'){
@@ -495,7 +505,7 @@ function taskInit() {
         }
         taskInfo = response.result;
         // function_map = taskInfo.taskList;
-        console.log(`任务初始化完成: ${JSON.stringify(taskInfo)}`);
+        // console.log(`任务初始化完成: ${JSON.stringify(taskInfo)}`);
         gen.next();
     })
 
@@ -506,17 +516,16 @@ async function request(function_id, body = {}) {
     await $.wait(3000); //歇口气儿, 不然会报操作频繁
     return new Promise((resolve, reject) => {
         $.get(taskurl(function_id, body), (err, resp, data) => {
-          if (err) {
-            console.log("=== request error -s--");
-            console.log("=== request error -e--");
-          } else {
-            try {
+          try {
+            if (err) {
+              console.log('\n东东萌宠: API查询请求失败 ‼️‼️')
+            } else {
               data = JSON.parse(data);
-            } catch (e) {
-              console.log(e)
-            } finally {
-              resolve(data)
             }
+          } catch (e) {
+            console.log(e)
+          } finally {
+            resolve(data)
           }
         })
     })

@@ -1,48 +1,55 @@
 /*
-宠汪汪积分兑换奖品脚本, 目前脚本只兑换京豆(默认兑换条件：1、积分满足，2、等级满足的京豆)！
-更新时间; 2020-08-07
+宠汪汪积分兑换奖品脚本, 目前脚本只兑换京豆
+更新时间; 2020-08-26
+兑换规则：一个账号一天只能兑换一次京豆。
+1-5级：360积分兑换20京豆，6-10级：1600积分兑换100京豆， 11-20级：800积分兑换 50 ，21-25级：1600积分兑换100京豆。
+再往上的等级兑换规则目前不知，欢迎大家提供信息
 兑换奖品成功后才会有系统弹窗通知
-每日京豆库存会在0:00、8:00、16:00及时更新。有时候发现晚上23点多也有京豆可兑换，建议cron加上这个时间
-每个京东账户每天只可兑换一次，商品和京豆数量有限，兑完即止。
+每日京豆库存会在0:00、8:00、16:00更新，经测试发现中午12:00也会有补发京豆。
 支持京东双账号
 脚本兼容: Quantumult X, Surge, Loon, JSBox, Node.js
 // Quantumult X
 [task_local]
 #宠汪汪积分兑换奖品
-1 0-16/8 * * * https://raw.githubusercontent.com/lxk0301/scripts/master/jd_joy_reward.js, tag=宠汪汪积分兑换奖品, enabled=true
+0 0-16/8 * * * https://raw.githubusercontent.com/lxk0301/scripts/master/jd_joy_reward.js, tag=宠汪汪积分兑换奖品, enabled=true
 // Loon
 [Script]
-cron "1 0-16/8 * * *" script-path=https://raw.githubusercontent.com/lxk0301/scripts/master/jd_joy_reward.js,tag=宠汪汪积分兑换奖品
+cron "0 0-16/8 * * *" script-path=https://raw.githubusercontent.com/lxk0301/scripts/master/jd_joy_reward.js,tag=宠汪汪积分兑换奖品
 // Surge
-宠汪汪积分兑换奖品 = type=cron,cronexp=1 0-16/8 * * *,wake-system=1,timeout=20,script-path=https://raw.githubusercontent.com/lxk0301/scripts/master/jd_joy_reward.js
+宠汪汪积分兑换奖品 = type=cron,cronexp="0 0-16/8 * * *",wake-system=1,timeout=20,script-path=https://raw.githubusercontent.com/lxk0301/scripts/master/jd_joy_reward.js
  */
 const $ = new Env('宠汪汪积分兑换奖品');
-const joyRewardName = $.getdata('joyRewardName') || 20;//兑换多少数量的京豆，默认兑换20京豆
-//=======node.js使用说明======
-//请在下方单引号内自行填写您抓取的京东Cookie
-const Key = '';
-//如需双账号签到,此处单引号内填写抓取的"账号2"Cookie, 否则请勿填写
-const DualKey = '';
-//=======node.js使用说明结束=======
-//直接用NobyDa的jd cookie
-let cookie = Key ? Key : $.getdata('CookieJD');
-const cookie2 = DualKey ? DualKey : $.getdata('CookieJD2');
+const joyRewardName = $.getdata('joyRewardName') || '1';//是否兑换京豆，默认开启兑换功能，其中'1'为兑换，'0'为不兑换京豆
+//Node.js用户请在jdCookie.js处填写京东ck;
+const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
+const notify = $.isNode() ? require('./sendNotify') : '';
+//IOS等用户直接用NobyDa的jd cookie
+let cookiesArr = [], cookie = '';
+if ($.isNode()) {
+  Object.keys(jdCookieNode).forEach((item) => {
+    cookiesArr.push(jdCookieNode[item])
+  })
+} else {
+  cookiesArr.push($.getdata('CookieJD'));
+  cookiesArr.push($.getdata('CookieJD2'));
+}
 let UserName = '';
-const JD_API_HOST = 'https://jdjoy.jd.com/pet/';
+const JD_API_HOST = 'https://jdjoy.jd.com';
 !(async () => {
-  if (!cookie) {
+  if (!cookiesArr[0]) {
     $.msg('【京东账号一】宠汪汪积分兑换奖品失败', '【提示】请先获取京东账号一cookie\n直接使用NobyDa的京东签到获取', 'https://bean.m.jd.com/', {"open-url": "https://bean.m.jd.com/"});
-  } else {
-    UserName = decodeURIComponent(cookie.match(/pt_pin=(.+?);/) && cookie.match(/pt_pin=(.+?);/)[1])
-    console.log(`\n开始兑换【京东账号一】${UserName}\n`)
-    await joyReward();
   }
-  await $.wait(1000);
-  if (cookie2) {
-    cookie = cookie2;
-    UserName = decodeURIComponent(cookie.match(/pt_pin=(.+?);/)[1]);
-    console.log(`\n开始兑换【京东账号二】${UserName}\n`)
-    await joyReward(cookie2);
+  for (let i = 0; i < cookiesArr.length; i++) {
+    if (cookiesArr[i]) {
+      cookie = cookiesArr[i];
+      UserName = decodeURIComponent(cookie.match(/pt_pin=(.+?);/) && cookie.match(/pt_pin=(.+?);/)[1])
+      $.index = i + 1;
+      console.log(`\n开始【京东账号${$.index}】${UserName}\n`);
+      message = '';
+      subTitle = '';
+      await joyReward();
+      // $.msg($.name, '兑换脚本暂不能使用', `请停止使用，等待后期更新\n如果新版本兑换您有兑换机会，请抓包兑换\n再把抓包数据发送telegram用户@lxk0301`);
+    }
   }
 })()
     .catch((e) => {
@@ -52,127 +59,65 @@ const JD_API_HOST = 'https://jdjoy.jd.com/pet/';
       $.done();
     })
 
-async function joyReward(doubleKey) {
-  let getExchangeRewardsRes = await getExchangeRewards();
+async function joyReward() {
+  const getExchangeRewardsRes = await getExchangeRewards();
   if (getExchangeRewardsRes.success) {
     // console.log('success', getExchangeRewardsRes);
-    const datas = getExchangeRewardsRes.datas;
-    const {score, petLevel, pin} = getExchangeRewardsRes.datas[0];
-    const canPetLevel = Math.ceil((petLevel - 0.5)/5);
-    console.log(`当前积分 ${score}\n`);
-    console.log(`宠物等级 ${petLevel}\n`);
-    console.log(`可兑换阶级 ${canPetLevel === 1 ? 'L1-5等级' : canPetLevel === 2 ? 'L6-10等级' : canPetLevel === 3 ? 'L10-15等级' : canPetLevel === 4 ? 'L6-20等级' : canPetLevel === 5 ? 'L21-25等级' : canPetLevel === 6 ? 'L26-30等级' : '最高级'}\n`);
-    console.log(`京东昵称 ${pin}\n`);
-
-    let todayExchanged =  datas.some((value, index, array) => value.todayExchanged === true)
-    console.log(`今日是否已兑换过奖品  ${todayExchanged ? '是':'否'}\n`);
-    let canReardArr = [];//，满足你当前的等级，以及积分足够的京豆奖品
-    if (!todayExchanged) {
-      for (let i = 0; i < canPetLevel; i++) {
-        for (let j = 0; j < datas[i].rewardDetailVOS.length; j++) {
-          if (datas[i].rewardDetailVOS[j].rewardType === 3 && datas[i].rewardDetailVOS[j].petScore < score) {
-            if (joyRewardName * 1 === -1) {
-              canReardArr.push({
-                'petLevel': datas[i].rewardDetailVOS[j].petLevel,
-                'rewardName': datas[i].rewardDetailVOS[j].rewardName,
-                'petScore': datas[i].rewardDetailVOS[j].petScore,
-                'leftStock': datas[i].rewardDetailVOS[j].leftStock,
-                'id': datas[i].rewardDetailVOS[j].id,
-              });
-            } else if (joyRewardName * 1 === 20) {
-              if (datas[i].rewardDetailVOS[j].rewardName === '20京豆') {
-                canReardArr.push({
-                  'petLevel': datas[i].rewardDetailVOS[j].petLevel,
-                  'rewardName': datas[i].rewardDetailVOS[j].rewardName,
-                  'petScore': datas[i].rewardDetailVOS[j].petScore,
-                  'leftStock': datas[i].rewardDetailVOS[j].leftStock,
-                  'id': datas[i].rewardDetailVOS[j].id,
-                });
-              }
-            } else if (joyRewardName * 1 === 50) {
-              if (datas[i].rewardDetailVOS[j].rewardName === '50京豆') {
-                canReardArr.push({
-                  'petLevel': datas[i].rewardDetailVOS[j].petLevel,
-                  'rewardName': datas[i].rewardDetailVOS[j].rewardName,
-                  'petScore': datas[i].rewardDetailVOS[j].petScore,
-                  'leftStock': datas[i].rewardDetailVOS[j].leftStock,
-                  'id': datas[i].rewardDetailVOS[j].id,
-                });
-              }
-            } else if (joyRewardName * 1 === 100) {
-              if (datas[i].rewardDetailVOS[j].rewardName === '100京豆') {
-                canReardArr.push({
-                  'petLevel': datas[i].rewardDetailVOS[j].petLevel,
-                  'rewardName': datas[i].rewardDetailVOS[j].rewardName,
-                  'petScore': datas[i].rewardDetailVOS[j].petScore,
-                  'leftStock': datas[i].rewardDetailVOS[j].leftStock,
-                  'id': datas[i].rewardDetailVOS[j].id,
-                });
-              }
-            } else if (joyRewardName * 1 === 500) {
-              if (datas[i].rewardDetailVOS[j].rewardName === '500京豆') {
-                canReardArr.push({
-                  'petLevel': datas[i].rewardDetailVOS[j].petLevel,
-                  'rewardName': datas[i].rewardDetailVOS[j].rewardName,
-                  'petScore': datas[i].rewardDetailVOS[j].petScore,
-                  'leftStock': datas[i].rewardDetailVOS[j].leftStock,
-                  'id': datas[i].rewardDetailVOS[j].id,
-                });
-              }
-            } else if (joyRewardName * 1 === 1000) {
-              if (datas[i].rewardDetailVOS[j].rewardName === '1000京豆') {
-                canReardArr.push({
-                  'petLevel': datas[i].rewardDetailVOS[j].petLevel,
-                  'rewardName': datas[i].rewardDetailVOS[j].rewardName,
-                  'petScore': datas[i].rewardDetailVOS[j].petScore,
-                  'leftStock': datas[i].rewardDetailVOS[j].leftStock,
-                  'id': datas[i].rewardDetailVOS[j].id,
-                });
-              }
-            }
-          }
-        }
+    const data = getExchangeRewardsRes.data;
+    const levelSaleInfos = data.levelSaleInfos;
+    const giftSaleInfos = levelSaleInfos.giftSaleInfos;
+    console.log(`当前积分 ${data.coin}\n`);
+    console.log(`宠物等级 ${data.level}\n`);
+    console.log(`京东昵称 ${UserName}\n`);
+    let saleInfoId = '', giftName= '', extInfo = '', leftStock = 0, salePrice = 0;
+    for (let item of giftSaleInfos) {
+      if (item.giftType === 'jd_bean') {
+        saleInfoId = item.id;
+        leftStock = item.leftStock;
+        salePrice = item.salePrice;
+        giftName = item.giftName;
       }
-      console.log('可兑换京豆的列表长度', canReardArr)
-      canReardArr.reverse();//倒序进行兑换奖品
-      if (canReardArr && canReardArr.length > 0) {
-        for (let item of canReardArr) {
-          // console.log('leftStock', item.leftStock)
-          let levelArea = item.petLevel === 1 ? 'L1-5等级' : item.petLevel === 2 ? 'L6-10等级' : item.petLevel === 3 ? 'L10-15等级' : item.petLevel === 4 ? 'L6-20等级' : item.petLevel === 5 ? 'L21-25等级' : item.petLevel === 6 ? 'L26-30等级' : '最高级';
-          if (item.leftStock > 0) {
-            let exchangeRes = await exchange(item.id);
-            if (exchangeRes.success) {
-              if (exchangeRes.data === 'exchange_success') {
-                console.log(`【京东账号${doubleKey ? '二':'一'}】${UserName}成功兑换 ${item.rewardName}花费 ${item.petScore}积分`);
-                $.msg($.name, `成功兑换 ${item.rewardName}`, `【京东账号${doubleKey ? '二':'一'}】${UserName}\n成功从${levelArea}区域兑换 ${item.rewardName}\n花费 ${item.petScore}积分\n`)
-              } else if (exchangeRes.data === 'stock_insufficient') {
-                console.log(`兑换${levelArea}区域的【${item.rewardName}】失败，原因：已抢光`)
-              } else if (exchangeRes.data === 'chance_full') {
-                console.log(`兑换${levelArea}区域的【${item.rewardName}】失败，原因：今日兑换机会已用完`)
+    }
+    console.log(`当前京豆库存:${leftStock}`)
+    // 兼容之前BoxJs兑换设置的数据
+    if (joyRewardName && (joyRewardName === '-1' || joyRewardName === '1' || joyRewardName === '20' || joyRewardName === '50' || joyRewardName === '100' || joyRewardName === '500' || joyRewardName === '1000')) {
+      //开始兑换
+      if (data.coin >= salePrice) {
+        if (leftStock) {
+          if (!saleInfoId) return
+          console.log(`当前账户积分:${data.coin}\n当前京豆库存:${leftStock}\n满足兑换条件,开始为您兑换京豆\n`);
+          const exchangeRes = await exchange(saleInfoId, 'pet');
+          if (exchangeRes.success) {
+            if (exchangeRes.errorCode === 'buy_success') {
+              console.log(`兑换${giftName}成功,【宠物等级】${data.level}\n【消耗积分】${salePrice}个\n【剩余积分】${data.coin - salePrice}个\n`)
+              $.msg($.name, `兑换${giftName}成功`, `【京东账号${$.index}】${UserName}\n【宠物等级】${data.level}\n【消耗积分】${salePrice}分\n【当前剩余】${data.coin - salePrice}积分\n`);
+              if ($.isNode() && notify.SCKEY) {
+                await notify.sendNotify(`${$.name}`, `【京东账号${$.index}】 ${UserName}\n\n【兑换${giftName}】成功\n\n【宠物等级】${data.level}\n\n【消耗积分】${salePrice}分\n\n【当前剩余】${data.coin - salePrice}积分\n\n`);
               }
-            } else {
-              console.log('兑换奖励API调用失败')
+            } else if (exchangeRes.errorCode === 'buy_limit') {
+              console.log('兑换失败，原因：兑换京豆已达上限，请把机会留给更多的小伙伴~')
+              //$.msg($.name, `兑换${giftName}失败`, `【京东账号${$.index}】${UserName}\n兑换京豆已达上限\n请把机会留给更多的小伙伴~\n`)
             }
-          } else {
-            console.log(`兑换${levelArea}区域的【${item.rewardName}】失败，原因：奖品已抢光`)
           }
+        } else {
+          console.log('兑换失败，原因：京豆库存不足，已抢完，请下一场再兑换')
         }
       } else {
-        if (joyRewardName * 1 !== 0) {
-          $.msg($.name, '请在boxjs重新设置', '当前设置兑换京豆数量不满足您宠汪汪的等级和积分\n');
-        } else {
-          console.log('您在boxjs设置了不进行兑换奖品')
-        }
+        console.log(`兑换失败，原因：您目前只有${data.coin}积分，已不足兑换${giftName}所需的${salePrice}积分\n`)
+        //$.msg($.name, `兑换${giftName}失败`, `【京东账号${$.index}】${UserName}\n目前只有${data.coin}积分\n已不足兑换${giftName}所需的${salePrice}积分\n`)
       }
     } else {
-      console.log(`兑换失败，您今日已经兑换过一次奖品（每个京东账户每天只可兑换一次）`)
+      console.log('您设置了不兑换京豆,如需兑换京豆，请去BoxJs重新设置或修改第20行代码')
     }
   } else if (!getExchangeRewardsRes.success && getExchangeRewardsRes.errorCode === 'B0001') {
-    $.msg($.name, `【提示】京东账号${doubleKey ? '二':'一'}cookie已失效,请重新登录获取`, '请点击此处去获取Cookie\n https://bean.m.jd.com/ \n', {"open-url": "https://bean.m.jd.com/"});
-    if (doubleKey) {
-      $.setdata('', 'CookieJD2')
-    } else {
+    $.msg($.name, `【提示】京东账号${$.index}${UserName}cookie已失效,请重新登录获取`, '请点击此处去获取Cookie\n https://bean.m.jd.com/ \n', {"open-url": "https://bean.m.jd.com/"});
+    if ($.index === 1) {
       $.setdata('', 'CookieJD');//cookie失效，故清空cookie。
+    } else if ($.index === 2){
+      $.setdata('', 'CookieJD2');//cookie失效，故清空cookie。
+    }
+    if ($.isNode() && notify.SCKEY) {
+      await notify.sendNotify(`${$.name}cookie已失效`, `京东账号${$.index} ${UserName}\n\n请重新登录获取cookie`);
     }
     // $.done();
   }
@@ -180,7 +125,7 @@ async function joyReward(doubleKey) {
 function getExchangeRewards() {
   return new Promise((resolve) => {
     const option = {
-      url: `${JD_API_HOST}getExchangeRewards`,
+      url: `${JD_API_HOST}/gift/getHomeInfo`,
       headers: {
         "Host": "jdjoy.jd.com",
         "Content-Type": "application/json",
@@ -207,11 +152,11 @@ function getExchangeRewards() {
     });
   })
 }
-function exchange(rewardId) {
+function exchange(rewardId, orderSource) {
   return new Promise((resolve) => {
     const option = {
-      url: `${JD_API_HOST}exchange`,
-      body: `${JSON.stringify({'id':rewardId})}`,
+      url: `${JD_API_HOST}/gift/exchange`,
+      body: `${JSON.stringify({'saleInfoId':rewardId, 'orderSource': orderSource})}`,
       headers: {
         "Host": "jdjoy.jd.com",
         "Accept": "*/*",

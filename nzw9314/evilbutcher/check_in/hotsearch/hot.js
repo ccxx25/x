@@ -8,7 +8,17 @@
 
 【致谢】
 本脚本使用了Chavy的Env.js，感谢！
-@南叔、@mini计划-图标聚合、@zZPiglet、@xinian
+@南叔、@mini计划-图标聚合、@zZPiglet、@xinian、@api-evangelist-rss2json
+
+⚠️【免责声明】
+------------------------------------------
+1、此脚本仅用于学习研究，不保证其合法性、准确性、有效性，请根据情况自行判断，本人对此不承担任何保证责任。
+2、由于此脚本仅用于学习研究，您必须在下载后 24 小时内将所有内容从您的计算机或手机或任何存储设备中完全删除，若违反规定引起任何事件本人对此均不负责。
+3、请勿将此脚本用于任何商业或非法目的，若违反规定请自行对此负责。
+4、此脚本涉及应用与本人无关，本人对因此引起的任何隐私泄漏或其他后果不承担任何责任。
+5、本人对任何脚本引发的问题概不负责，包括但不限于由脚本错误引起的任何损失和损害。
+6、如果任何单位或个人认为此脚本可能涉嫌侵犯其权利，应及时通知并提供身份证明，所有权证明，我们将在收到认证文件确认后删除此脚本。
+7、所有直接或间接使用、查看此脚本的人均应该仔细阅读此声明。本人保留随时更改或补充此声明的权利。一旦您使用或复制了此脚本，即视为您已接受此免责声明。
 
 ⚠️【使用方法】请仔细阅读⚠️
 ------------------------------------------
@@ -56,10 +66,11 @@ cron "30 0 8-22/2 * * *" script-path=https://raw.githubusercontent.com/evilbutch
 */
 
 const $ = new Env("热门监控");
+const base64 = new Base64Code();
 
 //⚠️本地自定参数修改位置⚠️
 var keyword = ["万茜"]; //👈本地脚本关键词在这里设置。
-var rsslink = ["https://rsshub.app/bilibili/user/video/2267573"]; //👈本地rss订阅设置
+var rsslink = ["http://sspai.me/feed", "http://songshuhui.net/feed"]; //👈本地rss订阅设置
 //⚠️👆以上用英文逗号、英文双引号⚠️
 $.weibo = true; //是否开启相应榜单监控
 $.wbnum = 6; //自定微博热搜数量
@@ -102,6 +113,7 @@ $.pushnewrss = false; //是否忽略关键词推送rss最新内容
 $.splitpushzmz = false; //是否分开推送人人影视内容
 $.pushnewzmz = false; //是否忽略关键词推送人人影视最新内容
 $.attachurl = false; //通知是否附带跳转链接
+$.refreshtime = 6; //重复内容默认在6小时内不再通知，之后清空，可自行修改
 $.rid = 0; //更改B站监控榜单
 $.time = 2; //榜单获取时限，单位秒
 //⚠️本地自定参数修改位置⚠️
@@ -155,6 +167,8 @@ var mediaurldb = [];
 var mediaurlamz = [];
 var mediaurlrss = [];
 var titlerss = [];
+var saveditem = [];
+var checkrssresult = false;
 
 !(async () => {
   /*if (typeof $request != "undefined") {
@@ -165,140 +179,65 @@ var titlerss = [];
   if (havekeyword() == true) {
     if ($.weibo == true) {
       await gethotsearch();
-      if (resultwb.length != 0) {
-        if ($.splitpushwb == true) {
-          splitpushnotify(resultwb, openurlwb);
-        } else {
-          mergepushnotify(resultwb);
-        }
-      }
     } else {
       $.log("微博热搜未获取😫");
     }
     if ($.zhihu == true) {
       await gethotlist();
-      if (resultzh.length != 0) {
-        if ($.splitpushzh == true) {
-          splitpushnotify(resultzh, openurlzh);
-        } else {
-          mergepushnotify(resultzh);
-        }
-      }
     } else {
       $.log("知乎热榜未获取😫");
     }
     if ($.baidu == true) {
       await getfylist();
-      if (resultbd.length != 0) {
-        if ($.splitpushbd == true) {
-          splitpushnotify(resultbd, openurlbd);
-        } else {
-          mergepushnotify(resultbd);
-        }
-      }
     } else {
       $.log("百度风云榜未获取😫");
     }
     if ($.bilibili == true) {
       await getbllist();
-      if (resultbl.length != 0) {
-        if ($.splitpushbl == true) {
-          splitpushnotifymedia(resultbl, openurlbl, mediaurlbl);
-        } else {
-          mergepushnotify(resultbl);
-        }
-      }
     } else {
       $.log("B站日榜未获取😫");
     }
     if ($.douban == true) {
       await getdblist();
-      if (resultdb.length != 0) {
-        if ($.splitpushdb == true) {
-          splitpushnotifymedia(resultdb, openurldb, mediaurldb);
-        } else {
-          mergepushnotify(resultdb);
-        }
-      }
     } else {
       $.log("豆瓣榜单未获取😫");
     }
     if ($.douyin == true) {
       await getdylist();
-      if (resultdy.length != 0) {
-        if ($.splitpushdy == true) {
-          splitpushnotify(resultdy, openurldy);
-        } else {
-          mergepushnotify(resultdy);
-        }
-      }
     } else {
       $.log("抖音榜单未获取😫");
     }
     if ($.k36 == true) {
       await getk36list();
-      if (resultk36.length != 0) {
-        if ($.splitpushk36 == true) {
-          splitpushnotify(resultk36, openurlk36);
-        } else {
-          mergepushnotify(resultk36);
-        }
-      }
     } else {
       $.log("36氪榜单未获取😫");
     }
     if ($.amazon == true) {
       await getamazonlist();
-      if (resultamz.length != 0) {
-        if ($.splitpushamz == true) {
-          splitpushnotifymedia(resultamz, openurlamz, mediaurlamz);
-        } else {
-          mergepushnotify(resultamz);
-        }
-      }
     } else {
       $.log("Kindle图书榜单未获取😫");
     }
     if ($.zmz == true) {
       await getzmzlist();
-      if (resultzmz.length != 0) {
-        if ($.splitpushzmz == true) {
-          splitpushnotify(resultzmz, openurlzmz);
-        } else {
-          mergepushnotify(resultzmz);
-        }
-      }
     } else {
       $.log("人人影视榜单未获取😫");
     }
     if ($.rss == true) {
       if (haversslink()) {
-        for (var i = 0; i < rsslink.length; i++) {
-          resultrss[i] = [];
-          openurlrss[i] = [];
-          mediaurlrss[i] = [];
-          titlerss[i] = [];
-          itemsrss[i] = [];
-          urlsrss[i] = [];
-          coversrss[i] = [];
-          await getrsslist(
-            rsslink[i],
-            resultrss[i],
-            openurlrss[i],
-            mediaurlrss[i],
-            titlerss[i],
-            itemsrss[i],
-            urlsrss[i],
-            coversrss[i]
-          );
-          if (resultrss[i].length != 0) {
-            if ($.splitpushrss == true) {
-              splitpushnotifymedia(resultrss[i], openurlrss[i], mediaurlrss[i]);
-            } else {
-              mergepushnotify(resultrss[i]);
-            }
-          }
-        }
+        await Promise.all(
+          rsslink.map(async rss => {
+            await getrsslist(
+              rss,
+              resultrss,
+              openurlrss,
+              mediaurlrss,
+              titlerss,
+              itemsrss,
+              urlsrss,
+              coversrss
+            );
+          })
+        );
       }
     } else {
       $.log("rss订阅未获取😫");
@@ -340,7 +279,7 @@ function haversslink() {
     return false;
   } else {
     for (var i = 0; i < rsslink.length; i++) {
-      if (keyword[i] != 0) {
+      if (rsslink[i] != 0) {
         return true;
       }
     }
@@ -354,7 +293,39 @@ function haversslink() {
 }
 
 function getsetting() {
-  $.log("初始化，开始！");
+  $.log("初始化！");
+  if (
+    $.getdata("evil_savedtime") != undefined &&
+    $.getdata("evil_savedtime") != ""
+  ) {
+    $.savedtime = $.getdata("evil_savedtime");
+    $.nowtime = new Date().getTime();
+  } else {
+    $.savedtime = new Date().getTime();
+    $.nowtime = new Date().getTime();
+    $.setdata(JSON.stringify($.nowtime), "evil_savedtime");
+    $.setdata("[]", "evil_saveditem");
+  }
+  $.refreshtime = $.getdata("evil_refreshtime") || $.refreshtime;
+  var minus = $.nowtime - $.savedtime;
+  if (minus > $.refreshtime * 3600000) {
+    $.setdata("[]", "evil_saveditem");
+    $.setdata(JSON.stringify($.nowtime), "evil_savedtime");
+  }
+  if (
+    $.getdata("evil_saveditem") != undefined &&
+    $.getdata("evil_saveditem") != ""
+  ) {
+    var storeitem = JSON.parse($.getdata("evil_saveditem"));
+  } else {
+    storeitem = [];
+  }
+  for (var i = 0; i < storeitem.length; i++) {
+    saveditem.push(storeitem[i]);
+  }
+  if (saveditem.length != 0) {
+    $.log("\n刷新时间内不再通知的内容👇\n" + saveditem + "\n");
+  }
   if (
     $.getdata("evil_wb_keyword") != undefined &&
     $.getdata("evil_wb_keyword") != ""
@@ -413,6 +384,10 @@ function getsetting() {
   $.zmznum = $.getdata("evil_zmznum") * 1 || $.zmznum;
   $.time = $.getdata("evil_time") * 1000 || $.time * 1000;
   $.log("监控关键词 " + keyword);
+  $.log("刷新时间 " + $.refreshtime + "小时");
+  $.log("此次运行时间戳 " + $.nowtime);
+  $.log("上次保存时间戳 " + $.savedtime);
+  $.log("间隔 " + (minus / 3600000).toFixed(2) + "小时");
   $.log("监控rss链接 " + rsslink);
   $.log("获取rss订阅 " + $.rss);
   $.log("分开推送rss内容 " + $.splitpushrss);
@@ -454,21 +429,30 @@ function getsetting() {
   $.log("分开推送人人影视内容 " + $.splitpushzmz);
   $.log("忽略关键词获取人人影视最新内容 " + $.pushnewzmz);
   $.log("获取人人影视榜单数量 " + $.zmznum + "个");
+  if ($.getdata("evil_cltz") == "1") {
+    $.log("调用迅雷离线");
+  } else if ($.getdata("evil_cltz") == "2") {
+    $.log("调用115离线");
+  } else if ($.getdata("evil_cltz") == "3") {
+    $.log("调用袋鼠下载");
+  } else if ($.getdata("evil_cltz") == "4") {
+    $.log("调用闪电下载");
+  }
+  $.link =
+    "shortcuts://x-callback-url/run-shortcut?name=%E7%A3%81%E5%8A%9B%E7%A6%BB%E7%BA%BF&input=";
   $.log("附带跳转链接 " + $.attachurl + "\n");
 }
 
 function gethotsearch() {
   $.log("开始获取微博榜单...");
   return new Promise(resolve => {
-    try {
-      const wbRequest = {
-        url:
-          "https://m.weibo.cn/api/container/getIndex?containerid=106003%26filter_type%3Drealtimehot"
-      };
-      $.get(wbRequest, (error, response, data) => {
-        if (error) {
-          throw new Error(error);
-        }
+    const wbRequest = {
+      url:
+        "https://m.weibo.cn/api/container/getIndex?containerid=106003%26filter_type%3Drealtimehot"
+    };
+    $.get(wbRequest, (error, response, data) => {
+      try {
+        if (error) throw new Error(error);
         if (response.statusCode == 200) {
           var body = response.body;
           var obj = JSON.parse(body);
@@ -522,36 +506,41 @@ function gethotsearch() {
               urlswb
             );
           }
+          if (resultwb.length != 0) {
+            if ($.splitpushwb == true) {
+              splitpushnotify(resultwb, openurlwb);
+            } else {
+              mergepushnotify(resultwb);
+            }
+          }
           resolve();
         } else {
           $.log("获取微博热搜出现错误❌以下详情：\n");
-          $.log(response);
+          $.log(JSON.stringify(response));
         }
         resolve();
-      });
-    } catch (e) {
-      $.log("获取微博热搜出现错误❌原因：\n");
-      $.log(e);
-      resolve();
-    }
-    setTimeout(() => {
-      resolve();
-    }, $.time);
+      } catch (e) {
+        $.log("获取微博热搜出现错误❌原因：\n");
+        $.log(JSON.stringify(e));
+        resolve();
+      }
+      setTimeout(() => {
+        resolve();
+      }, $.time);
+    });
   });
 }
 
 function gethotlist() {
   $.log("开始获取知乎榜单...");
   return new Promise(resolve => {
-    try {
-      const zhRequest = {
-        url:
-          "https://api.zhihu.com/topstory/hot-lists/total?limit=10&reverse_order=0"
-      };
-      $.get(zhRequest, (error, response, data) => {
-        if (error) {
-          throw new Error(error);
-        }
+    const zhRequest = {
+      url:
+        "https://api.zhihu.com/topstory/hot-lists/total?limit=10&reverse_order=0"
+    };
+    $.get(zhRequest, (error, response, data) => {
+      try {
+        if (error) throw new Error(error);
         if (response.statusCode == 200) {
           var body = response.body;
           var obj = JSON.parse(body);
@@ -601,35 +590,40 @@ function gethotlist() {
               urlszh
             );
           }
+          if (resultzh.length != 0) {
+            if ($.splitpushzh == true) {
+              splitpushnotify(resultzh, openurlzh);
+            } else {
+              mergepushnotify(resultzh);
+            }
+          }
           resolve();
         } else {
           $.log("获取知乎热榜出现错误❌以下详情：\n");
-          $.log(response);
+          $.log(JSON.stringify(response));
         }
         resolve();
-      });
-    } catch (e) {
-      $.log("获取知乎热榜出现错误❌原因：\n");
-      $.log(e);
-      resolve();
-    }
-    setTimeout(() => {
-      resolve();
-    }, $.time);
+      } catch (e) {
+        $.log("获取知乎热榜出现错误❌原因：\n");
+        $.log(JSON.stringify(e));
+        resolve();
+      }
+      setTimeout(() => {
+        resolve();
+      }, $.time);
+    });
   });
 }
 
 function getfylist() {
   $.log("开始获取百度榜单...");
   return new Promise(resolve => {
-    try {
-      const bdRequest = {
-        url: "http://top.baidu.com/mobile_v2/buzz?b=1&c=515"
-      };
-      $.get(bdRequest, (error, response, data) => {
-        if (error) {
-          throw new Error(error);
-        }
+    const bdRequest = {
+      url: "http://top.baidu.com/mobile_v2/buzz?b=1&c=515"
+    };
+    $.get(bdRequest, (error, response, data) => {
+      try {
+        if (error) throw new Error(error);
         if (response.statusCode == 200) {
           var body = response.body;
           var obj = JSON.parse(body);
@@ -688,35 +682,40 @@ function getfylist() {
               urlsbd
             );
           }
+          if (resultbd.length != 0) {
+            if ($.splitpushbd == true) {
+              splitpushnotify(resultbd, openurlbd);
+            } else {
+              mergepushnotify(resultbd);
+            }
+          }
           resolve();
         } else {
           $.log("获取百度风云榜出现错误❌以下详情：\n");
-          $.log(response);
+          $.log(JSON.stringify(response));
         }
         resolve();
-      });
-    } catch (e) {
-      $.log("获取百度风云榜出现错误❌原因：\n");
-      $.log(e);
-      resolve();
-    }
-    setTimeout(() => {
-      resolve();
-    }, $.time);
+      } catch (e) {
+        $.log("获取百度风云榜出现错误❌原因：\n");
+        $.log(JSON.stringify(e));
+        resolve();
+      }
+      setTimeout(() => {
+        resolve();
+      }, $.time);
+    });
   });
 }
 
 function getbllist() {
   $.log("开始获取B站日榜...");
   return new Promise(resolve => {
-    try {
-      const blRequest = {
-        url: "https://app.bilibili.com/x/v2/rank/region?rid=" + $.rid
-      };
-      $.get(blRequest, (error, response, data) => {
-        if (error) {
-          throw new Error(error);
-        }
+    const blRequest = {
+      url: "https://app.bilibili.com/x/v2/rank/region?rid=" + $.rid
+    };
+    $.get(blRequest, (error, response, data) => {
+      try {
+        if (error) throw new Error(error);
         if (response.statusCode == 200) {
           var body = response.body;
           var obj = JSON.parse(body);
@@ -771,40 +770,46 @@ function getbllist() {
               coversbl
             );
           }
+          if (resultbl.length != 0) {
+            if ($.splitpushbl == true) {
+              splitpushnotifymedia(resultbl, openurlbl, mediaurlbl);
+            } else {
+              mergepushnotify(resultbl);
+            }
+          }
           resolve();
         } else {
           $.log("获取B站日榜出现错误❌以下详情:\n");
-          $.log(response);
+          $.log(JSON.stringify(response));
         }
         resolve();
-      });
-    } catch (e) {
-      $.log("获取B站日榜出现错误❌原因：\n");
-      $.log(e);
-      resolve();
-    }
-    setTimeout(() => {
-      resolve();
-    }, $.time);
+      } catch (e) {
+        $.log("获取B站日榜出现错误❌原因：\n");
+        $.log(JSON.stringify(e));
+        resolve();
+      }
+      setTimeout(() => {
+        resolve();
+      }, $.time);
+    });
   });
 }
 
 function getdblist() {
   $.log("开始获取豆瓣榜单...");
   return new Promise(resolve => {
-    try {
-      const dbheader = {
-        Referer: `https://m.douban.com/pwa/cache_worker`
-      };
-      const dbRequest = {
-        url:
-          "https://m.douban.com/rexxar/api/v2/subject_collection/movie_real_time_hotest/items?start=0&count=50&items_only=1&for_mobile=1",
-        headers: dbheader
-      };
-      $.get(dbRequest, (error, response, data) => {
-        if (error) {
-          throw new Error(error);
-        }
+    const dbheader = {
+      Referer: `https://m.douban.com/pwa/cache_worker`
+    };
+    const dbRequest = {
+      url:
+        "https://m.douban.com/rexxar/api/v2/subject_collection/movie_real_time_hotest/items?start=0&count=50&items_only=1&for_mobile=1",
+      headers: dbheader
+    };
+    $.get(dbRequest, (error, response, data) => {
+      try {
+        if (error) throw new Error(error);
+
         if (response.statusCode == 200) {
           var body = response.body;
           var obj = JSON.parse(body);
@@ -865,35 +870,41 @@ function getdblist() {
               coversdb
             );
           }
+          if (resultdb.length != 0) {
+            if ($.splitpushdb == true) {
+              splitpushnotifymedia(resultdb, openurldb, mediaurldb);
+            } else {
+              mergepushnotify(resultdb);
+            }
+          }
           resolve();
         } else {
           $.log("获取豆瓣榜单出现错误❌以下详情:\n");
-          $.log(response);
+          $.log(JSON.stringify(response));
         }
         resolve();
-      });
-    } catch (e) {
-      $.log("获取豆瓣榜单出现错误❌原因：\n");
-      $.log(e);
-      resolve();
-    }
-    setTimeout(() => {
-      resolve();
-    }, $.time);
+      } catch (e) {
+        $.log("获取豆瓣榜单出现错误❌原因：\n");
+        $.log(JSON.stringify(e));
+        resolve();
+      }
+      setTimeout(() => {
+        resolve();
+      }, $.time);
+    });
   });
 }
 
 function getdylist() {
   $.log("开始获取抖音榜单...");
   return new Promise(resolve => {
-    try {
-      const dyRequest = {
-        url: "https://tophub.today/n/DpQvNABoNE"
-      };
-      $.get(dyRequest, (error, response, data) => {
-        if (error) {
-          throw new Error(error);
-        }
+    const dyRequest = {
+      url: "https://tophub.today/n/DpQvNABoNE"
+    };
+    $.get(dyRequest, (error, response, data) => {
+      try {
+        if (error) throw new Error(error);
+
         if (response.statusCode == 200) {
           var body = response.body;
           parsehtml(body, itemsdy, urlsdy);
@@ -921,35 +932,40 @@ function getdylist() {
               urlsdy
             );
           }
+          if (resultdy.length != 0) {
+            if ($.splitpushdy == true) {
+              splitpushnotify(resultdy, openurldy);
+            } else {
+              mergepushnotify(resultdy);
+            }
+          }
           resolve();
         } else {
           $.log("获取抖音榜单出现错误❌以下详情:\n");
-          $.log(response);
+          $.log(JSON.stringify(response));
         }
         resolve();
-      });
-    } catch (e) {
-      $.log("获取抖音榜单出现错误❌原因：\n");
-      $.log(e);
-      resolve();
-    }
-    setTimeout(() => {
-      resolve();
-    }, $.time);
+      } catch (e) {
+        $.log("获取抖音榜单出现错误❌原因：\n");
+        $.log(JSON.stringify(e));
+        resolve();
+      }
+      setTimeout(() => {
+        resolve();
+      }, $.time);
+    });
   });
 }
 
 function getk36list() {
   $.log("开始获取36氪榜单...");
   return new Promise(resolve => {
-    try {
-      const k36Request = {
-        url: "https://tophub.today/n/Q1Vd5Ko85R"
-      };
-      $.get(k36Request, (error, response, data) => {
-        if (error) {
-          throw new Error(error);
-        }
+    const k36Request = {
+      url: "https://tophub.today/n/Q1Vd5Ko85R"
+    };
+    $.get(k36Request, (error, response, data) => {
+      try {
+        if (error) throw new Error(error);
         if (response.statusCode == 200) {
           var body = response.body;
           parsehtml(body, itemsk36, urlsk36);
@@ -977,39 +993,44 @@ function getk36list() {
               urlsk36
             );
           }
+          if (resultk36.length != 0) {
+            if ($.splitpushk36 == true) {
+              splitpushnotify(resultk36, openurlk36);
+            } else {
+              mergepushnotify(resultk36);
+            }
+          }
           resolve();
         } else {
           $.log("获取36氪榜单出现错误❌以下详情:\n");
-          $.log(response);
+          $.log(JSON.stringify(response));
         }
         resolve();
-      });
-    } catch (e) {
-      $.log("获取36氪榜单出现错误❌原因：\n");
-      $.log(e);
-      resolve();
-    }
-    setTimeout(() => {
-      resolve();
-    }, $.time);
+      } catch (e) {
+        $.log("获取36氪榜单出现错误❌原因：\n");
+        $.log(JSON.stringify(e));
+        resolve();
+      }
+      setTimeout(() => {
+        resolve();
+      }, $.time);
+    });
   });
 }
 
 function getamazonlist() {
   $.log("开始获取Kindle图书榜单...");
   return new Promise(resolve => {
-    try {
-      const amazonRequest = {
-        url: "https://www.amazon.cn/gp/bestsellers/digital-text",
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (iPhone; CPU iPhone OS 13_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.1.2 Mobile/15E148 Safari/604.1"
-        }
-      };
-      $.get(amazonRequest, (error, response, data) => {
-        if (error) {
-          throw new Error(error);
-        }
+    const amazonRequest = {
+      url: "https://www.amazon.cn/gp/bestsellers/digital-text",
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (iPhone; CPU iPhone OS 13_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.1.2 Mobile/15E148 Safari/604.1"
+      }
+    };
+    $.get(amazonRequest, (error, response, data) => {
+      try {
+        if (error) throw new Error(error);
         if (response.statusCode == 200) {
           var body = response.body;
           parsehtmlkindle(body, itemsamz, urlsamz, coversamz);
@@ -1041,54 +1062,76 @@ function getamazonlist() {
               coversamz
             );
           }
+          if (resultamz.length != 0) {
+            if ($.splitpushamz == true) {
+              splitpushnotifymedia(resultamz, openurlamz, mediaurlamz);
+            } else {
+              mergepushnotify(resultamz);
+            }
+          }
           resolve();
         } else {
           $.log("获取Kindle图书榜单出现错误❌以下详情:\n");
-          $.log(response);
+          $.log(JSON.stringify(response));
         }
         resolve();
-      });
-    } catch (e) {
-      $.log("获取Kindle图书榜单出现错误❌原因：\n");
-      $.log(e);
-      resolve();
-    }
-    setTimeout(() => {
-      resolve();
-    }, $.time);
+      } catch (e) {
+        $.log("获取Kindle图书榜单出现错误❌原因：\n");
+        $.log(JSON.stringify(e));
+        resolve();
+      }
+      setTimeout(() => {
+        resolve();
+      }, $.time);
+    });
   });
 }
 
 function getzmzlist() {
   $.log("开始获取人人影视榜单...");
   return new Promise(resolve => {
-    try {
-      const zmzRequest = {
-        url: `http://file.apicvn.com/file/list?page=1&order=create_time&sort=desc`,
-        headers: {
-          Host: "file.apicvn.com",
-          "Content-Type": "application/x-www-form-urlencoded",
-          "User-Agent": "Mozilla/5.0"
-        }
-      };
-      $.get(zmzRequest, (error, response, data) => {
-        if (error) {
-          throw new Error(error);
-        }
+    const zmzRequest = {
+      url: `http://file.apicvn.com/file/list?page=1&order=create_time&sort=desc`,
+      headers: {
+        Host: "file.apicvn.com",
+        "Content-Type": "application/x-www-form-urlencoded",
+        "User-Agent": "Mozilla/5.0"
+      }
+    };
+    $.get(zmzRequest, (error, response, data) => {
+      try {
+        if (error) throw new Error(error);
         if (response.statusCode == 200) {
           var body = response.body;
           var obj = JSON.parse(body);
           for (var i = 0; i < obj.length; i++) {
             var item = obj[i]["file_name"];
             var oriurl = obj[i]["magnet_url"];
-            var url = "shortcuts://x-callback-url/run-shortcut?name=%E7%A3%81%E5%8A%9B%E7%A6%BB%E7%BA%BF&input=" + oriurl;
+            if ($.getdata("evil_cltz") == "1") {
+              var posturl = "xunlei｜" + oriurl;
+            } else if ($.getdata("evil_cltz") == "2") {
+              posturl = "115｜" + oriurl;
+            } else if ($.getdata("evil_cltz") == "3") {
+              posturl = "daishu｜" + oriurl;
+            } else if ($.getdata("evil_cltz") == "4") {
+              posturl = "shandian｜" + oriurl;
+            } else {
+              posturl = "xunlei｜" + oriurl;
+            }
+            var encodeurl = base64.encode(posturl);
+            var url = $.link + encodeurl;
             var size = (obj[i]["file_size"] / 1048576).toFixed(2);
             var finalsize = size + "MB";
             if (size > 1024) {
               size = (obj[i]["file_size"] / 1073741824).toFixed(2);
               finalsize = size + "GB";
             }
-            var finalitem = item + "\n📦大小：" + finalsize;
+            if (oriurl == "") {
+              var postitem = "🧲未找到｜" + item;
+            } else {
+              postitem = item;
+            }
+            var finalitem = postitem + "\n📦大小：" + finalsize;
             itemszmz.push(finalitem);
             urlszmz.push(url);
           }
@@ -1116,21 +1159,28 @@ function getzmzlist() {
               urlszmz
             );
           }
+          if (resultzmz.length != 0) {
+            if ($.splitpushzmz == true) {
+              splitpushnotify(resultzmz, openurlzmz);
+            } else {
+              mergepushnotify(resultzmz);
+            }
+          }
           resolve();
         } else {
           $.log("获取人人影视榜单出现错误❌以下详情:\n");
-          $.log(response);
+          $.log(JSON.stringify(response));
         }
         resolve();
-      });
-    } catch (e) {
-      $.log("获取人人影视榜单出现错误❌原因：\n");
-      $.log(e);
-      resolve();
-    }
-    setTimeout(() => {
-      resolve();
-    }, $.time);
+      } catch (e) {
+        $.log("获取人人影视榜单出现错误❌原因：\n");
+        $.log(JSON.stringify(e));
+        resolve();
+      }
+      setTimeout(() => {
+        resolve();
+      }, $.time);
+    });
   });
 }
 
@@ -1145,61 +1195,125 @@ function getrsslist(
   coversrss
 ) {
   $.log("开始获取RSS内容...");
+  resultrss = [];
+  openurlrss = [];
+  mediaurlrss = [];
+  titlerss = [];
+  itemsrss = [];
+  urlsrss = [];
+  coversrss = [];
   return new Promise(resolve => {
-    try {
-      const rssRequest = {
-        url: rsslink
-      };
-      $.get(rssRequest, (error, response, data) => {
-        if (error) {
-          throw new Error(error);
-        }
+    const rssRequest = {
+      url:
+        "https://api.rss2json.com/v1/api.json?rss_url=" +
+        encodeURIComponent(rsslink)
+    };
+    $.get(rssRequest, (error, response, data) => {
+      try {
+        if (error) throw new Error(error);
         if (response.statusCode == 200) {
           var body = response.body;
-          parsehtmlrss(body, titlerss, itemsrss, urlsrss, coversrss);
-          $.log("RSS内容获取成功✅\n" + itemsrss);
-          if ($.pushnewrss == false) {
-            for (var j = 0; j < keyword.length; j++) {
-              getkeywordcontentmedia(
-                $.splitpushrss,
-                titlerss,
-                resultrss,
-                openurlrss,
-                mediaurlrss,
-                keyword[j],
-                itemsrss,
-                urlsrss,
-                coversrss
-              );
+          var obj = JSON.parse(body);
+          titlerss = obj.feed.title;
+          var items = obj.items;
+          var num = items.length;
+          for (var i = 0; i < num; i++) {
+            var title = items[i].title;
+            var url = items[i].link;
+            if (items[i].thumbnail != null) {
+              var cover = items[i].thumbnail;
+            } else {
+              cover =
+                "https://raw.githubusercontent.com/58xinian/icon/master/hot.png";
             }
-          } else {
-            gethotcontentmedia(
+            if (items[i].description != null) {
+              var des = items[i].description;
+              var postdes = des
+                .replace(new RegExp(/\\n/, "gm"), "")
+                .replace(new RegExp(/\<.*?\>/, "gm"), "");
+              var finaldes = postdes.trim();
+              var description = "\n🔎详情：" + finaldes.slice(0, 50);
+            } else {
+              description = "\n🔎详情：暂无";
+            }
+            if (items[i].author == "") {
+              var author = "\n👨‍💻作者：暂无";
+            } else {
+              author = "\n👨‍💻作者：" + items[i].author;
+            }
+            var item = title + author + description;
+            itemsrss.push(item);
+            urlsrss.push(url);
+            coversrss.push(cover);
+          }
+          $.log("RSS内容获取成功✅\n" + itemsrss);
+        } else {
+          $.log(JSON.stringify(response.body));
+          $.log("RSS解析出错❌请检查订阅稍后重试⚠️本次将使用正则。");
+          return new Promise(resolve => {
+            const rssregRequest = {
+              url: rsslink
+            };
+            $.get(rssregRequest, (error, response, data) => {
+              if (error) throw new Error(error);
+              if (response.statusCode == 200) {
+                var body = response.body;
+                parsehtmlrss(body, titlerss, itemsrss, urlsrss, coversrss);
+                $.log("RSS内容正则获取成功✅\n" + itemsrss);
+                resolve();
+              } else {
+                $.log("获取RSS内容出现错误❌以下详情:\n");
+                $.log(JSON.stringify(body));
+                resolve();
+              }
+            });
+          });
+        }
+        if ($.pushnewrss == false) {
+          for (var j = 0; j < keyword.length; j++) {
+            getkeywordcontentmedia(
               $.splitpushrss,
               titlerss,
               resultrss,
               openurlrss,
               mediaurlrss,
-              $.rssnum,
+              keyword[j],
               itemsrss,
               urlsrss,
               coversrss
             );
           }
-          resolve();
         } else {
-          $.log("获取RSS内容出现错误❌以下详情:\n");
-          $.log(response);
+          gethotcontentmedia(
+            $.splitpushrss,
+            titlerss,
+            resultrss,
+            openurlrss,
+            mediaurlrss,
+            $.rssnum,
+            itemsrss,
+            urlsrss,
+            coversrss
+          );
+        }
+        if (resultrss.length != 0) {
+          checkrssresult = true;
+          if ($.splitpushrss == true) {
+            splitpushnotifymedia(resultrss, openurlrss, mediaurlrss);
+          } else {
+            mergepushnotify(resultrss);
+          }
         }
         resolve();
-      });
-    } catch (e) {
-      $.log("获取RSS内容出现错误❌原因：\n");
-      $.log(e);
-      resolve();
-    }
-    setTimeout(() => {
-      resolve();
-    }, $.time);
+      } catch (e) {
+        $.log("获取RSS内容出现错误❌原因：\n");
+        $.log(JSON.stringify(e));
+        resolve();
+      }
+      setTimeout(() => {
+        resolve();
+      }, $.time);
+    });
   });
 }
 
@@ -1340,7 +1454,7 @@ function getkeywordcontenturl(
 ) {
   if (splitpush == false) {
     for (var i = 0; i < items.length; i++) {
-      if (items[i].indexOf(key) != -1) {
+      if (items[i].indexOf(key) != -1 && saveditem.indexOf(items[i]) == -1) {
         if ($.attachurl == true) {
           result.push(
             `🎉"${text}"的关键词"${key}"更新\n第${i + 1}名：${items[i]}\n${
@@ -1352,11 +1466,12 @@ function getkeywordcontenturl(
             `🎉"${text}"的关键词"${key}"更新\n第${i + 1}名：${items[i]}`
           );
         }
+        saveditem.push(items[i]);
       }
     }
   } else {
     for (i = 0; i < items.length; i++) {
-      if (items[i].indexOf(key) != -1) {
+      if (items[i].indexOf(key) != -1 && saveditem.indexOf(items[i]) == -1) {
         if ($.attachurl == true) {
           result.push(
             `🎉"${text}"的关键词"${key}"更新\n第${i + 1}名：${items[i]}\n${
@@ -1369,6 +1484,7 @@ function getkeywordcontenturl(
           );
         }
         openurl.push(urls[i]);
+        saveditem.push(items[i]);
       }
     }
   }
@@ -1420,7 +1536,7 @@ function getkeywordcontentmedia(
 ) {
   if (splitpush == false) {
     for (var i = 0; i < items.length; i++) {
-      if (items[i].indexOf(key) != -1) {
+      if (items[i].indexOf(key) != -1 && saveditem.indexOf(items[i]) == -1) {
         if ($.attachurl == true) {
           result.push(
             `🎉"${text}"的关键词"${key}"更新\n第${i + 1}名：${items[i]}\n${
@@ -1432,11 +1548,12 @@ function getkeywordcontentmedia(
             `🎉"${text}"的关键词"${key}"更新\n第${i + 1}名：${items[i]}`
           );
         }
+        saveditem.push(items[i]);
       }
     }
   } else {
     for (i = 0; i < items.length; i++) {
-      if (items[i].indexOf(key) != -1) {
+      if (items[i].indexOf(key) != -1 && saveditem.indexOf(items[i]) == -1) {
         if ($.attachurl == true) {
           result.push(
             `🎉"${text}"的关键词"${key}"更新\n第${i + 1}名：${items[i]}\n${
@@ -1450,6 +1567,7 @@ function getkeywordcontentmedia(
         }
         openurl.push(urls[i]);
         mediaurl.push(covers[i]);
+        saveditem.push(items[i]);
       }
     }
   }
@@ -1530,17 +1648,6 @@ function splitpushnotifymedia(result, openurl, mediaurl) {
   }
 }
 
-function checkrssresult() {
-  for (var i = 0; i < rsslink.length; i++) {
-    if (resultrss[i] != undefined) {
-      if (resultrss[i].length != 0) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
 function last() {
   if (
     resultwb.length == 0 &&
@@ -1552,10 +1659,11 @@ function last() {
     resultk36.length == 0 &&
     resultamz.length == 0 &&
     resultzmz.length == 0 &&
-    checkrssresult() == false
+    checkrssresult == false
   ) {
     $.log(`\n😫您订阅的关键词"${keyword}"暂时没有更新`);
   }
+  $.setdata(JSON.stringify(saveditem), "evil_saveditem");
 }
 
 function final() {
@@ -1579,7 +1687,7 @@ function final() {
   }
 }
 
-function deluselessck() {
+/*function deluselessck() {
   $.setdata("", "evil_hotsearchurl");
   $.setdata("", "evil_hotsearchcookie");
   $.setdata("", "evil_zhihuurl");
@@ -1594,7 +1702,7 @@ function deluselessck() {
 }
 
 function getCookie() {
-  /*if (
+  if (
     $request &&
     $request.method != "OPTIONS" &&
     $request.url.match(/display\_time/)
@@ -1606,282 +1714,505 @@ function getCookie() {
     $.setdata(siurl, url);
     $.setdata(sicookie, cookie);
     $.msg("热门监控", "", "获取微博热搜Cookie成功🎉");
-  }*/
+  }
+}*/
+
+//From https://github.com/dankogai/js-base64
+function Base64Code() {
+  var r = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
+    t = (function (r) {
+      for (var t = {}, e = 0, n = r.length; e < n; e++) t[r.charAt(e)] = e;
+      return t;
+    })(r),
+    e = String.fromCharCode,
+    n = function (r) {
+      if (r.length < 2) {
+        var t = r.charCodeAt(0);
+        return t < 128
+          ? r
+          : t < 2048
+          ? e(192 | (t >>> 6)) + e(128 | (63 & t))
+          : e(224 | ((t >>> 12) & 15)) +
+            e(128 | ((t >>> 6) & 63)) +
+            e(128 | (63 & t));
+      }
+      t = 65536 + 1024 * (r.charCodeAt(0) - 55296) + (r.charCodeAt(1) - 56320);
+      return (
+        e(240 | ((t >>> 18) & 7)) +
+        e(128 | ((t >>> 12) & 63)) +
+        e(128 | ((t >>> 6) & 63)) +
+        e(128 | (63 & t))
+      );
+    },
+    c = /[\uD800-\uDBFF][\uDC00-\uDFFFF]|[^\x00-\x7F]/g,
+    a = function (r) {
+      return r.replace(c, n);
+    },
+    o = function (t) {
+      var e = [0, 2, 1][t.length % 3],
+        n =
+          (t.charCodeAt(0) << 16) |
+          ((t.length > 1 ? t.charCodeAt(1) : 0) << 8) |
+          (t.length > 2 ? t.charCodeAt(2) : 0),
+        c = [
+          r.charAt(n >>> 18),
+          r.charAt((n >>> 12) & 63),
+          e >= 2 ? "=" : r.charAt((n >>> 6) & 63),
+          e >= 1 ? "=" : r.charAt(63 & n)
+        ];
+      return c.join("");
+    },
+    h = function (r) {
+      return r.replace(/[\s\S]{1,3}/g, o);
+    };
+  this.encode = function (r) {
+    var t = "[object Uint8Array]" === Object.prototype.toString.call(r);
+    return t ? r.toString("base64") : h(a(String(r)));
+  };
+  var u = /[\xC0-\xDF][\x80-\xBF]|[\xE0-\xEF][\x80-\xBF]{2}|[\xF0-\xF7][\x80-\xBF]{3}/g,
+    i = function (r) {
+      switch (r.length) {
+        case 4:
+          var t =
+              ((7 & r.charCodeAt(0)) << 18) |
+              ((63 & r.charCodeAt(1)) << 12) |
+              ((63 & r.charCodeAt(2)) << 6) |
+              (63 & r.charCodeAt(3)),
+            n = t - 65536;
+          return e(55296 + (n >>> 10)) + e(56320 + (1023 & n));
+        case 3:
+          return e(
+            ((15 & r.charCodeAt(0)) << 12) |
+              ((63 & r.charCodeAt(1)) << 6) |
+              (63 & r.charCodeAt(2))
+          );
+        default:
+          return e(((31 & r.charCodeAt(0)) << 6) | (63 & r.charCodeAt(1)));
+      }
+    },
+    A = function (r) {
+      return r.replace(u, i);
+    },
+    g = function (r) {
+      var n = r.length,
+        c = n % 4,
+        a =
+          (n > 0 ? t[r.charAt(0)] << 18 : 0) |
+          (n > 1 ? t[r.charAt(1)] << 12 : 0) |
+          (n > 2 ? t[r.charAt(2)] << 6 : 0) |
+          (n > 3 ? t[r.charAt(3)] : 0),
+        o = [e(a >>> 16), e((a >>> 8) & 255), e(255 & a)];
+      return (o.length -= [0, 0, 2, 1][c]), o.join("");
+    },
+    d = function (r) {
+      return r.replace(/\S{1,4}/g, g);
+    },
+    l = function (r) {
+      return A(d(r));
+    };
+  this.decode = function (r) {
+    return l(
+      String(r)
+        .replace(/[-_]/g, function (r) {
+          return "-" == r ? "+" : "/";
+        })
+        .replace(/[^A-Za-z0-9\+\/]/g, "")
+    )
+      .replace(/&gt;/g, ">")
+      .replace(/&lt;/g, "<");
+  };
 }
 
 //From chavyleung's Env.js
-function Env(t, s) {
+function Env(name, opts) {
   return new (class {
-    constructor(t, s) {
-      (this.name = t),
-        (this.data = null),
-        (this.dataFile = "box.dat"),
-        (this.logs = []),
-        (this.logSeparator = "\n"),
-        (this.startTime = new Date().getTime()),
-        Object.assign(this, s),
-        this.log("", `\ud83d\udd14${this.name}, \u5f00\u59cb!`);
+    constructor(name, opts) {
+      this.name = name;
+      this.data = null;
+      this.dataFile = "box.dat";
+      this.logs = [];
+      this.isMute = false;
+      this.logSeparator = "\n";
+      this.startTime = new Date().getTime();
+      Object.assign(this, opts);
+      this.log("", `🔔${this.name}, 开始!`);
     }
     isNode() {
-      return "undefined" != typeof module && !!module.exports;
+      return "undefined" !== typeof module && !!module.exports;
     }
     isQuanX() {
-      return "undefined" != typeof $task;
+      return "undefined" !== typeof $task;
     }
     isSurge() {
-      return "undefined" != typeof $httpClient;
+      return "undefined" !== typeof $httpClient && "undefined" === typeof $loon;
     }
     isLoon() {
-      return "undefined" != typeof $loon;
+      return "undefined" !== typeof $loon;
+    }
+    getScript(url) {
+      return new Promise(resolve => {
+        this.get({ url }, (err, resp, body) => resolve(body));
+      });
+    }
+    runScript(script, runOpts) {
+      return new Promise(resolve => {
+        let httpapi = this.getdata("@chavy_boxjs_userCfgs.httpapi");
+        httpapi = httpapi ? httpapi.replace(/\n/g, "").trim() : httpapi;
+        let httpapi_timeout = this.getdata(
+          "@chavy_boxjs_userCfgs.httpapi_timeout"
+        );
+        httpapi_timeout = httpapi_timeout ? httpapi_timeout * 1 : 20;
+        httpapi_timeout =
+          runOpts && runOpts.timeout ? runOpts.timeout : httpapi_timeout;
+        const [key, addr] = httpapi.split("@");
+        const opts = {
+          url: `http://${addr}/v1/scripting/evaluate`,
+          body: {
+            script_text: script,
+            mock_type: "cron",
+            timeout: httpapi_timeout
+          },
+          headers: { "X-Key": key, Accept: "*/*" }
+        };
+        this.post(opts, (err, resp, body) => resolve(body));
+      }).catch(e => this.logErr(e));
     }
     loaddata() {
-      if (!this.isNode()) return {};
-      {
-        (this.fs = this.fs ? this.fs : require("fs")),
-          (this.path = this.path ? this.path : require("path"));
-        const t = this.path.resolve(this.dataFile),
-          s = this.path.resolve(process.cwd(), this.dataFile),
-          e = this.fs.existsSync(t),
-          i = !e && this.fs.existsSync(s);
-        if (!e && !i) return {};
-        {
-          const i = e ? t : s;
+      if (this.isNode()) {
+        this.fs = this.fs ? this.fs : require("fs");
+        this.path = this.path ? this.path : require("path");
+        const curDirDataFilePath = this.path.resolve(this.dataFile);
+        const rootDirDataFilePath = this.path.resolve(
+          process.cwd(),
+          this.dataFile
+        );
+        const isCurDirDataFile = this.fs.existsSync(curDirDataFilePath);
+        const isRootDirDataFile =
+          !isCurDirDataFile && this.fs.existsSync(rootDirDataFilePath);
+        if (isCurDirDataFile || isRootDirDataFile) {
+          const datPath = isCurDirDataFile
+            ? curDirDataFilePath
+            : rootDirDataFilePath;
           try {
-            return JSON.parse(this.fs.readFileSync(i));
+            return JSON.parse(this.fs.readFileSync(datPath));
           } catch (e) {
             return {};
           }
-        }
-      }
+        } else return {};
+      } else return {};
     }
     writedata() {
       if (this.isNode()) {
-        (this.fs = this.fs ? this.fs : require("fs")),
-          (this.path = this.path ? this.path : require("path"));
-        const t = this.path.resolve(this.dataFile),
-          s = this.path.resolve(process.cwd(), this.dataFile),
-          e = this.fs.existsSync(t),
-          i = !e && this.fs.existsSync(s),
-          o = JSON.stringify(this.data);
-        e
-          ? this.fs.writeFileSync(t, o)
-          : i
-          ? this.fs.writeFileSync(s, o)
-          : this.fs.writeFileSync(t, o);
-      }
-    }
-    lodash_get(t, s, e) {
-      const i = s.replace(/\[(\d+)\]/g, ".$1").split(".");
-      let o = t;
-      for (const t of i) if (((o = Object(o)[t]), void 0 === o)) return e;
-      return o;
-    }
-    lodash_set(t, s, e) {
-      return Object(t) !== t
-        ? t
-        : (Array.isArray(s) || (s = s.toString().match(/[^.[\]]+/g) || []),
-          (s
-            .slice(0, -1)
-            .reduce(
-              (t, e, i) =>
-                Object(t[e]) === t[e]
-                  ? t[e]
-                  : (t[e] = Math.abs(s[i + 1]) >> 0 == +s[i + 1] ? [] : {}),
-              t
-            )[s[s.length - 1]] = e),
-          t);
-    }
-    getdata(t) {
-      let s = this.getval(t);
-      if (/^@/.test(t)) {
-        const [, e, i] = /^@(.*?)\.(.*?)$/.exec(t),
-          o = e ? this.getval(e) : "";
-        if (o)
-          try {
-            const t = JSON.parse(o);
-            s = t ? this.lodash_get(t, i, "") : s;
-          } catch (t) {
-            s = "";
-          }
-      }
-      return s;
-    }
-    setdata(t, s) {
-      let e = !1;
-      if (/^@/.test(s)) {
-        const [, i, o] = /^@(.*?)\.(.*?)$/.exec(s),
-          h = this.getval(i),
-          a = i ? ("null" === h ? null : h || "{}") : "{}";
-        try {
-          const s = JSON.parse(a);
-          this.lodash_set(s, o, t),
-            (e = this.setval(JSON.stringify(s), i)),
-            console.log(`${i}: ${JSON.stringify(s)}`);
-        } catch (e) {
-          const s = {};
-          this.lodash_set(s, o, t),
-            (e = this.setval(JSON.stringify(s), i)),
-            console.log(`${i}: ${JSON.stringify(s)}`);
+        this.fs = this.fs ? this.fs : require("fs");
+        this.path = this.path ? this.path : require("path");
+        const curDirDataFilePath = this.path.resolve(this.dataFile);
+        const rootDirDataFilePath = this.path.resolve(
+          process.cwd(),
+          this.dataFile
+        );
+        const isCurDirDataFile = this.fs.existsSync(curDirDataFilePath);
+        const isRootDirDataFile =
+          !isCurDirDataFile && this.fs.existsSync(rootDirDataFilePath);
+        const jsondata = JSON.stringify(this.data);
+        if (isCurDirDataFile) {
+          this.fs.writeFileSync(curDirDataFilePath, jsondata);
+        } else if (isRootDirDataFile) {
+          this.fs.writeFileSync(rootDirDataFilePath, jsondata);
+        } else {
+          this.fs.writeFileSync(curDirDataFilePath, jsondata);
         }
-      } else e = $.setval(t, s);
-      return e;
+      }
     }
-    getval(t) {
-      return this.isSurge() || this.isLoon()
-        ? $persistentStore.read(t)
-        : this.isQuanX()
-        ? $prefs.valueForKey(t)
-        : this.isNode()
-        ? ((this.data = this.loaddata()), this.data[t])
-        : (this.data && this.data[t]) || null;
+    lodash_get(source, path, defaultValue = undefined) {
+      const paths = path.replace(/\[(\d+)\]/g, ".$1").split(".");
+      let result = source;
+      for (const p of paths) {
+        result = Object(result)[p];
+        if (result === undefined) {
+          return defaultValue;
+        }
+      }
+      return result;
     }
-    setval(t, s) {
-      return this.isSurge() || this.isLoon()
-        ? $persistentStore.write(t, s)
-        : this.isQuanX()
-        ? $prefs.setValueForKey(t, s)
-        : this.isNode()
-        ? ((this.data = this.loaddata()),
-          (this.data[s] = t),
-          this.writedata(),
-          !0)
-        : (this.data && this.data[s]) || null;
+    lodash_set(obj, path, value) {
+      if (Object(obj) !== obj) return obj;
+      if (!Array.isArray(path)) path = path.toString().match(/[^.[\]]+/g) || [];
+      path
+        .slice(0, -1)
+        .reduce(
+          (a, c, i) =>
+            Object(a[c]) === a[c]
+              ? a[c]
+              : (a[c] = Math.abs(path[i + 1]) >> 0 === +path[i + 1] ? [] : {}),
+          obj
+        )[path[path.length - 1]] = value;
+      return obj;
     }
-    initGotEnv(t) {
-      (this.got = this.got ? this.got : require("got")),
-        (this.cktough = this.cktough ? this.cktough : require("tough-cookie")),
-        (this.ckjar = this.ckjar ? this.ckjar : new this.cktough.CookieJar()),
-        t &&
-          ((t.headers = t.headers ? t.headers : {}),
-          void 0 === t.headers.Cookie &&
-            void 0 === t.cookieJar &&
-            (t.cookieJar = this.ckjar));
+    getdata(key) {
+      let val = this.getval(key);
+      // 如果以 @
+      if (/^@/.test(key)) {
+        const [, objkey, paths] = /^@(.*?)\.(.*?)$/.exec(key);
+        const objval = objkey ? this.getval(objkey) : "";
+        if (objval) {
+          try {
+            const objedval = JSON.parse(objval);
+            val = objedval ? this.lodash_get(objedval, paths, "") : val;
+          } catch (e) {
+            val = "";
+          }
+        }
+      }
+      return val;
     }
-    get(t, s = () => {}) {
-      t.headers &&
-        (delete t.headers["Content-Type"], delete t.headers["Content-Length"]),
-        this.isSurge() || this.isLoon()
-          ? $httpClient.get(t, (t, e, i) => {
-              !t && e && ((e.body = i), (e.statusCode = e.status), s(t, e, i));
-            })
-          : this.isQuanX()
-          ? $task.fetch(t).then(
-              t => {
-                const { statusCode: e, statusCode: i, headers: o, body: h } = t;
-                s(null, { status: e, statusCode: i, headers: o, body: h }, h);
-              },
-              t => s(t)
-            )
-          : this.isNode() &&
-            (this.initGotEnv(t),
-            this.got(t)
-              .on("redirect", (t, s) => {
-                try {
-                  const e = t.headers["set-cookie"]
-                    .map(this.cktough.Cookie.parse)
-                    .toString();
-                  this.ckjar.setCookieSync(e, null), (s.cookieJar = this.ckjar);
-                } catch (t) {
-                  this.logErr(t);
-                }
-              })
-              .then(
-                t => {
-                  const {
-                    statusCode: e,
-                    statusCode: i,
-                    headers: o,
-                    body: h
-                  } = t;
-                  s(null, { status: e, statusCode: i, headers: o, body: h }, h);
-                },
-                t => s(t)
-              ));
+    setdata(val, key) {
+      let issuc = false;
+      if (/^@/.test(key)) {
+        const [, objkey, paths] = /^@(.*?)\.(.*?)$/.exec(key);
+        const objdat = this.getval(objkey);
+        const objval = objkey
+          ? objdat === "null"
+            ? null
+            : objdat || "{}"
+          : "{}";
+        try {
+          const objedval = JSON.parse(objval);
+          this.lodash_set(objedval, paths, val);
+          issuc = this.setval(JSON.stringify(objedval), objkey);
+        } catch (e) {
+          const objedval = {};
+          this.lodash_set(objedval, paths, val);
+          issuc = this.setval(JSON.stringify(objedval), objkey);
+        }
+      } else {
+        issuc = this.setval(val, key);
+      }
+      return issuc;
     }
-    post(t, s = () => {}) {
-      if (
-        (t.body &&
-          t.headers &&
-          !t.headers["Content-Type"] &&
-          (t.headers["Content-Type"] = "application/x-www-form-urlencoded"),
-        delete t.headers["Content-Length"],
-        this.isSurge() || this.isLoon())
-      )
-        $httpClient.post(t, (t, e, i) => {
-          !t && e && ((e.body = i), (e.statusCode = e.status), s(t, e, i));
+    getval(key) {
+      if (this.isSurge() || this.isLoon()) {
+        return $persistentStore.read(key);
+      } else if (this.isQuanX()) {
+        return $prefs.valueForKey(key);
+      } else if (this.isNode()) {
+        this.data = this.loaddata();
+        return this.data[key];
+      } else {
+        return (this.data && this.data[key]) || null;
+      }
+    }
+    setval(val, key) {
+      if (this.isSurge() || this.isLoon()) {
+        return $persistentStore.write(val, key);
+      } else if (this.isQuanX()) {
+        return $prefs.setValueForKey(val, key);
+      } else if (this.isNode()) {
+        this.data = this.loaddata();
+        this.data[key] = val;
+        this.writedata();
+        return true;
+      } else {
+        return (this.data && this.data[key]) || null;
+      }
+    }
+    initGotEnv(opts) {
+      this.got = this.got ? this.got : require("got");
+      this.cktough = this.cktough ? this.cktough : require("tough-cookie");
+      this.ckjar = this.ckjar ? this.ckjar : new this.cktough.CookieJar();
+      if (opts) {
+        opts.headers = opts.headers ? opts.headers : {};
+        if (undefined === opts.headers.Cookie && undefined === opts.cookieJar) {
+          opts.cookieJar = this.ckjar;
+        }
+      }
+    }
+    get(opts, callback = () => {}) {
+      if (opts.headers) {
+        delete opts.headers["Content-Type"];
+        delete opts.headers["Content-Length"];
+      }
+      if (this.isSurge() || this.isLoon()) {
+        $httpClient.get(opts, (err, resp, body) => {
+          if (!err && resp) {
+            resp.body = body;
+            resp.statusCode = resp.status;
+          }
+          callback(err, resp, body);
         });
-      else if (this.isQuanX())
-        (t.method = "POST"),
-          $task.fetch(t).then(
-            t => {
-              const { statusCode: e, statusCode: i, headers: o, body: h } = t;
-              s(null, { status: e, statusCode: i, headers: o, body: h }, h);
-            },
-            t => s(t)
-          );
-      else if (this.isNode()) {
-        this.initGotEnv(t);
-        const { url: e, ...i } = t;
-        this.got.post(e, i).then(
-          t => {
-            const { statusCode: e, statusCode: i, headers: o, body: h } = t;
-            s(null, { status: e, statusCode: i, headers: o, body: h }, h);
+      } else if (this.isQuanX()) {
+        $task.fetch(opts).then(
+          resp => {
+            const { statusCode: status, statusCode, headers, body } = resp;
+            callback(null, { status, statusCode, headers, body }, body);
           },
-          t => s(t)
+          err => callback(err)
+        );
+      } else if (this.isNode()) {
+        this.initGotEnv(opts);
+        this.got(opts)
+          .on("redirect", (resp, nextOpts) => {
+            try {
+              const ck = resp.headers["set-cookie"]
+                .map(this.cktough.Cookie.parse)
+                .toString();
+              this.ckjar.setCookieSync(ck, null);
+              nextOpts.cookieJar = this.ckjar;
+            } catch (e) {
+              this.logErr(e);
+            }
+            // this.ckjar.setCookieSync(resp.headers['set-cookie'].map(Cookie.parse).toString())
+          })
+          .then(
+            resp => {
+              const { statusCode: status, statusCode, headers, body } = resp;
+              callback(null, { status, statusCode, headers, body }, body);
+            },
+            err => callback(err)
+          );
+      }
+    }
+    post(opts, callback = () => {}) {
+      // 如果指定了请求体, 但没指定`Content-Type`, 则自动生成
+      if (opts.body && opts.headers && !opts.headers["Content-Type"]) {
+        opts.headers["Content-Type"] = "application/x-www-form-urlencoded";
+      }
+      if (opts.headers) delete opts.headers["Content-Length"];
+      if (this.isSurge() || this.isLoon()) {
+        $httpClient.post(opts, (err, resp, body) => {
+          if (!err && resp) {
+            resp.body = body;
+            resp.statusCode = resp.status;
+          }
+          callback(err, resp, body);
+        });
+      } else if (this.isQuanX()) {
+        opts.method = "POST";
+        $task.fetch(opts).then(
+          resp => {
+            const { statusCode: status, statusCode, headers, body } = resp;
+            callback(null, { status, statusCode, headers, body }, body);
+          },
+          err => callback(err)
+        );
+      } else if (this.isNode()) {
+        this.initGotEnv(opts);
+        const { url, ..._opts } = opts;
+        this.got.post(url, _opts).then(
+          resp => {
+            const { statusCode: status, statusCode, headers, body } = resp;
+            callback(null, { status, statusCode, headers, body }, body);
+          },
+          err => callback(err)
         );
       }
     }
-    msg(s = t, e = "", i = "", o) {
-      const h = t =>
-        !t || (!this.isLoon() && this.isSurge())
-          ? t
-          : "string" == typeof t
-          ? this.isLoon()
-            ? t
-            : this.isQuanX()
-            ? { "open-url": t }
-            : void 0
-          : "object" == typeof t && (t["open-url"] || t["media-url"])
-          ? this.isLoon()
-            ? t["open-url"]
-            : this.isQuanX()
-            ? t
-            : void 0
-          : void 0;
-      this.isSurge() || this.isLoon()
-        ? $notification.post(s, e, i, h(o))
-        : this.isQuanX() && $notify(s, e, i, h(o)),
-        this.logs.push(
-          "",
-          "==============\ud83d\udce3\u7cfb\u7edf\u901a\u77e5\ud83d\udce3=============="
-        ),
-        this.logs.push(s),
-        e && this.logs.push(e),
-        i && this.logs.push(i);
+    /**
+     *
+     * 示例:$.time('yyyy-MM-dd qq HH:mm:ss.S')
+     *    :$.time('yyyyMMddHHmmssS')
+     *    y:年 M:月 d:日 q:季 H:时 m:分 s:秒 S:毫秒
+     *    其中y可选0-4位占位符、S可选0-1位占位符，其余可选0-2位占位符
+     * @param {*} fmt 格式化参数
+     *
+     */
+    time(fmt) {
+      let o = {
+        "M+": new Date().getMonth() + 1,
+        "d+": new Date().getDate(),
+        "H+": new Date().getHours(),
+        "m+": new Date().getMinutes(),
+        "s+": new Date().getSeconds(),
+        "q+": Math.floor((new Date().getMonth() + 3) / 3),
+        S: new Date().getMilliseconds()
+      };
+      if (/(y+)/.test(fmt))
+        fmt = fmt.replace(
+          RegExp.$1,
+          (new Date().getFullYear() + "").substr(4 - RegExp.$1.length)
+        );
+      for (let k in o)
+        if (new RegExp("(" + k + ")").test(fmt))
+          fmt = fmt.replace(
+            RegExp.$1,
+            RegExp.$1.length == 1
+              ? o[k]
+              : ("00" + o[k]).substr(("" + o[k]).length)
+          );
+      return fmt;
     }
-    log(...t) {
-      t.length > 0
-        ? (this.logs = [...this.logs, ...t])
-        : console.log(this.logs.join(this.logSeparator));
+    /**
+     * 系统通知
+     *
+     * > 通知参数: 同时支持 QuanX 和 Loon 两种格式, EnvJs根据运行环境自动转换, Surge 环境不支持多媒体通知
+     *
+     * 示例:
+     * $.msg(title, subt, desc, 'twitter://')
+     * $.msg(title, subt, desc, { 'open-url': 'twitter://', 'media-url': 'https://github.githubassets.com/images/modules/open_graph/github-mark.png' })
+     * $.msg(title, subt, desc, { 'open-url': 'https://bing.com', 'media-url': 'https://github.githubassets.com/images/modules/open_graph/github-mark.png' })
+     *
+     * @param {*} title 标题
+     * @param {*} subt 副标题
+     * @param {*} desc 通知详情
+     * @param {*} opts 通知参数
+     *
+     */
+    msg(title = name, subt = "", desc = "", opts) {
+      const toEnvOpts = rawopts => {
+        if (!rawopts || (!this.isLoon() && this.isSurge())) return rawopts;
+        if (typeof rawopts === "string") {
+          if (this.isLoon()) return rawopts;
+          else if (this.isQuanX()) return { "open-url": rawopts };
+          else return undefined;
+        } else if (
+          typeof rawopts === "object" &&
+          (rawopts["open-url"] || rawopts["media-url"])
+        ) {
+          if (this.isLoon()) return rawopts["open-url"];
+          else if (this.isQuanX()) return rawopts;
+          else undefined;
+        } else {
+          return undefined;
+        }
+      };
+      if (!this.isMute) {
+        if (this.isSurge() || this.isLoon()) {
+          $notification.post(title, subt, desc, toEnvOpts(opts));
+        } else if (this.isQuanX()) {
+          $notify(title, subt, desc, toEnvOpts(opts));
+        }
+      }
+      let logs = ["", "==============📣系统通知📣=============="];
+      logs.push(title);
+      subt ? logs.push(subt) : "";
+      desc ? logs.push(desc) : "";
+      console.log(logs.join("\n"));
+      this.logs = this.logs.concat(logs);
     }
-    logErr(t, s) {
-      const e = !this.isSurge() && !this.isQuanX() && !this.isLoon();
-      e
-        ? $.log("", `\u2757\ufe0f${this.name}, \u9519\u8bef!`, t.stack)
-        : $.log("", `\u2757\ufe0f${this.name}, \u9519\u8bef!`, t.message);
+    log(...logs) {
+      if (logs.length > 0) {
+        this.logs = [...this.logs, ...logs];
+      }
+      console.log(logs.join(this.logSeparator));
     }
-    wait(t) {
-      return new Promise(s => setTimeout(s, t));
+    logErr(err, msg) {
+      const isPrintSack = !this.isSurge() && !this.isQuanX() && !this.isLoon();
+      if (!isPrintSack) {
+        this.log("", `❗️${this.name}, 错误!`, err);
+      } else {
+        this.log("", `❗️${this.name}, 错误!`, err.stack);
+      }
     }
-    done(t = null) {
-      const s = new Date().getTime(),
-        e = (s - this.startTime) / 1e3;
-      this.log(
-        "",
-        `\ud83d\udd14${this.name}, \u7ed3\u675f! \ud83d\udd5b ${e} \u79d2`
-      ),
-        this.log(),
-        (this.isSurge() || this.isQuanX() || this.isLoon()) && $done(t);
+    wait(time) {
+      return new Promise(resolve => setTimeout(resolve, time));
     }
-  })(t, s);
+    done(val = {}) {
+      const endTime = new Date().getTime();
+      const costTime = (endTime - this.startTime) / 1000;
+      this.log("", `🔔${this.name}, 结束! 🕛 ${costTime} 秒`);
+      this.log();
+      if (this.isSurge() || this.isQuanX() || this.isLoon()) {
+        $done(val);
+      }
+    }
+  })(name, opts);
 }

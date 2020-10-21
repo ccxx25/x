@@ -182,20 +182,19 @@ function API(name = "untitled", debug = false) {
 
         delete(key) {
             this.log(`DELETE ${key}`);
-            delete this.cache[key];
             if (key.indexOf('#') !== -1) {
                 key = key.substr(1)
                 if (this.isSurge & this.isLoon) {
                     $persistentStore.write(null, key);
                 }
                 if (this.isQX) {
-                    $prefs.setValueForKey(null, key);
+                    $prefs.removeValueForKey(key);
                 }
                 if (this.isNode) {
                     delete this.root[key];
                 }
             } else {
-                this.cache[key] = data;
+                delete this.cache[key];
             }
             this.persistCache();
         }

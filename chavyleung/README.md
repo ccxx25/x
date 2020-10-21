@@ -1,5 +1,5 @@
 # Chavy Scripts
-![](https://img.shields.io/badge/license-MIT-blueviolet.svg)
+![](https://img.shields.io/badge/license-GPL-blueviolet.svg)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/chavyleung/scripts?color=%23c694ff)
 ![](https://badgen.net/github/stars/chavyleung/scripts)
 ![](https://tokei.rs/b1/github/chavyleung/scripts?category=code)
@@ -7,7 +7,7 @@
 # BoxJs
 A SPA Appliction be used for scripts utils
 
-![Demo](https://github.com/chavyleung/scripts/blob/master/BoxJS.gif)
+<image src="https://github.com/chavyleung/scripts/blob/master/BoxJS.gif" width="30%" height="55%">
 
 [Scripts Vote](https://t.me/chavyscripts)
 

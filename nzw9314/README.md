@@ -59,11 +59,15 @@
 * 任何以任何方式查看此项目的人或直接或间接使用该Script项目的任何脚本的使用者都应仔细阅读此声明。nzw9314保留随时更改或补充此免责声明的权利。一旦使用并复制了任何相关脚本或Script项目的规则，则视为您已接受此免责声明.
 
 ### 特别感谢：
+* [Qure](https://github.com/Koolson/Qure)
+
+* [Orz](https://github.com/Orz-3/mini)
+
 * [@NobyDa](https://github.com/NobyDa)
 
 * [@lhie1](https://github.com/lhie1)
 
-* [@ConnersHua](https://github.com/ConnersHua)
+* [@ConnersHua](https://github.com/DivineEngine/Profiles/tree/master)
 
 * [@chavyleung](https://github.com/chavyleung)
 

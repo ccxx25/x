@@ -35,6 +35,7 @@ function Env(name, opts) {
       this.dataFile = 'box.dat'
       this.logs = []
       this.isMute = false
+      this.isNeedRewrite = false
       this.logSeparator = '\n'
       this.startTime = new Date().getTime()
       Object.assign(this, opts)
@@ -261,6 +262,10 @@ function Env(name, opts) {
         delete opts.headers['Content-Length']
       }
       if (this.isSurge() || this.isLoon()) {
+        if (this.isSurge() && this.isNeedRewrite) {
+          opts.headers = opts.headers || {}
+          Object.assign(opts.headers, { 'X-Surge-Skip-Scripting': false })
+        }
         $httpClient.get(opts, (err, resp, body) => {
           if (!err && resp) {
             resp.body = body
@@ -269,6 +274,10 @@ function Env(name, opts) {
           callback(err, resp, body)
         })
       } else if (this.isQuanX()) {
+        if (this.isNeedRewrite) {
+          opts.opts = opts.opts || {}
+          Object.assign(opts.opts, { hints: false })
+        }
         $task.fetch(opts).then(
           (resp) => {
             const { statusCode: status, statusCode, headers, body } = resp
@@ -281,9 +290,11 @@ function Env(name, opts) {
         this.got(opts)
           .on('redirect', (resp, nextOpts) => {
             try {
-              const ck = resp.headers['set-cookie'].map(this.cktough.Cookie.parse).toString()
-              this.ckjar.setCookieSync(ck, null)
-              nextOpts.cookieJar = this.ckjar
+              if (resp.headers['set-cookie']) {
+                const ck = resp.headers['set-cookie'].map(this.cktough.Cookie.parse).toString()
+                this.ckjar.setCookieSync(ck, null)
+                nextOpts.cookieJar = this.ckjar
+              }
             } catch (e) {
               this.logErr(e)
             }
@@ -294,7 +305,10 @@ function Env(name, opts) {
               const { statusCode: status, statusCode, headers, body } = resp
               callback(null, { status, statusCode, headers, body }, body)
             },
-            (err) => callback(err)
+            (err) => {
+              const { message: error, response: resp } = err
+              callback(error, resp, resp && resp.body)
+            }
           )
       }
     }
@@ -306,6 +320,10 @@ function Env(name, opts) {
       }
       if (opts.headers) delete opts.headers['Content-Length']
       if (this.isSurge() || this.isLoon()) {
+        if (this.isSurge() && this.isNeedRewrite) {
+          opts.headers = opts.headers || {}
+          Object.assign(opts.headers, { 'X-Surge-Skip-Scripting': false })
+        }
         $httpClient.post(opts, (err, resp, body) => {
           if (!err && resp) {
             resp.body = body
@@ -315,6 +333,10 @@ function Env(name, opts) {
         })
       } else if (this.isQuanX()) {
         opts.method = 'POST'
+        if (this.isNeedRewrite) {
+          opts.opts = opts.opts || {}
+          Object.assign(opts.opts, { hints: false })
+        }
         $task.fetch(opts).then(
           (resp) => {
             const { statusCode: status, statusCode, headers, body } = resp
@@ -330,7 +352,10 @@ function Env(name, opts) {
             const { statusCode: status, statusCode, headers, body } = resp
             callback(null, { status, statusCode, headers, body }, body)
           },
-          (err) => callback(err)
+          (err) => {
+            const { message: error, response: resp } = err
+            callback(error, resp, resp && resp.body)
+          }
         )
       }
     }
@@ -378,15 +403,25 @@ function Env(name, opts) {
      */
     msg(title = name, subt = '', desc = '', opts) {
       const toEnvOpts = (rawopts) => {
-        if (!rawopts || (!this.isLoon() && this.isSurge())) return rawopts
+        if (!rawopts) return rawopts
         if (typeof rawopts === 'string') {
           if (this.isLoon()) return rawopts
           else if (this.isQuanX()) return { 'open-url': rawopts }
+          else if (this.isSurge()) return { url: rawopts }
           else return undefined
-        } else if (typeof rawopts === 'object' && (rawopts['open-url'] || rawopts['media-url'])) {
-          if (this.isLoon()) return rawopts['open-url']
-          else if (this.isQuanX()) return rawopts
-          else undefined
+        } else if (typeof rawopts === 'object') {
+          if (this.isLoon()) {
+            let openUrl = rawopts.openUrl || rawopts.url || rawopts['open-url']
+            let mediaUrl = rawopts.mediaUrl || rawopts['media-url']
+            return { openUrl, mediaUrl }
+          } else if (this.isQuanX()) {
+            let openUrl = rawopts['open-url'] || rawopts.url || rawopts.openUrl
+            let mediaUrl = rawopts['media-url'] || rawopts.mediaUrl
+            return { 'open-url': openUrl, 'media-url': mediaUrl }
+          } else if (this.isSurge()) {
+            let openUrl = rawopts.url || rawopts.openUrl || rawopts['open-url']
+            return { url: openUrl }
+          }
         } else {
           return undefined
         }

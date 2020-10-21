@@ -37,6 +37,7 @@ hostname = mall.oclean.com
 */
 
 const CheckinURL = 'https://mall.oclean.com/API/VshopProcess.ashx'
+const DrawURL = 'https://mall.oclean.com/api/VshopProcess.ashx?action=ActivityDraw'
 const CookieName = '欧可林'
 const CookieKey = 'Oclean'
 const reg = /Shop-Member=(\S*);/
@@ -85,6 +86,25 @@ function Checkin() {
         },
         body: 'action=SignIn&SignInSource=2&clientType=2'
     }
+    const oclean_draw = {
+        url: DrawURL,
+        headers: {
+            "Cookie": 'Shop-Member=' + $cmp.read("Oclean"),
+        },
+        body: 'ActivityId=9&clientType=2'
+    }
+    $cmp.post(oclean_draw, function(error, response, data) {
+        if (!error) {
+            const result = JSON.parse(data)
+            if (result.Status == "OK" || result.Data.AwardGrade) {
+                $cmp.log("Oclean draw succeed response : \n" + result.Data.Msg + '：' + result.Data.AwardSubName + '\n一等奖可能是未中奖。。')
+            } else {
+                $cmp.log("Oclean draw failed response : \n" + JSON.stringify(result))
+            }
+        } else {
+            $cmp.log("Oclean draw failed response : \n" + error)
+        }
+    })
     $cmp.post(oclean, function(error, response, data) {
         if (!error) {
             const result = JSON.parse(data)
@@ -114,4 +134,4 @@ function Checkin() {
     })
 }
 
-function compatibility(){const e="undefined"!=typeof $request,t="undefined"!=typeof $httpClient,r="undefined"!=typeof $task,o="undefined"!=typeof $app&&"undefined"!=typeof $http,n="function"==typeof require&&!o,s=(()=>{if(n){const e=require("request");return{request:e}}return null})(),i=(e,s,i)=>{r&&$notify(e,s,i),t&&$notification.post(e,s,i),n&&a(e+s+i),o&&$push.schedule({title:e,body:s?s+"\n"+i:i})},u=(e,o)=>r?$prefs.setValueForKey(e,o):t?$persistentStore.write(e,o):void 0,d=e=>r?$prefs.valueForKey(e):t?$persistentStore.read(e):void 0,l=e=>(e&&(e.status?e.statusCode=e.status:e.statusCode&&(e.status=e.statusCode)),e),f=(e,i)=>{r&&("string"==typeof e&&(e={url:e}),e.method="GET",$task.fetch(e).then(e=>{i(null,l(e),e.body)},e=>i(e.error,null,null))),t&&$httpClient.get(e,(e,t,r)=>{i(e,l(t),r)}),n&&s.request(e,(e,t,r)=>{i(e,l(t),r)}),o&&("string"==typeof e&&(e={url:e}),e.header=e.headers,e.handler=function(e){let t=e.error;t&&(t=JSON.stringify(e.error));let r=e.data;"object"==typeof r&&(r=JSON.stringify(e.data)),i(t,l(e.response),r)},$http.get(e))},p=(e,i)=>{r&&("string"==typeof e&&(e={url:e}),e.method="POST",$task.fetch(e).then(e=>{i(null,l(e),e.body)},e=>i(e.error,null,null))),t&&$httpClient.post(e,(e,t,r)=>{i(e,l(t),r)}),n&&s.request.post(e,(e,t,r)=>{i(e,l(t),r)}),o&&("string"==typeof e&&(e={url:e}),e.header=e.headers,e.handler=function(e){let t=e.error;t&&(t=JSON.stringify(e.error));let r=e.data;"object"==typeof r&&(r=JSON.stringify(e.data)),i(t,l(e.response),r)},$http.post(e))},a=e=>console.log(e),y=(o={})=>{r&&e&&$done(o),t&&(e?$done(o):$done())};return{isQuanX:r,isSurge:t,isJSBox:o,isRequest:e,notify:i,write:u,read:d,get:f,post:p,log:a,done:y}}
+function compatibility(){const e="undefined"!=typeof $request,t="undefined"!=typeof $httpClient,r="undefined"!=typeof $task,n="undefined"!=typeof $app&&"undefined"!=typeof $http,o="function"==typeof require&&!n,s=(()=>{if(o){const e=require("request");return{request:e}}return null})(),i=(e,s,i)=>{r&&$notify(e,s,i),t&&$notification.post(e,s,i),o&&a(e+s+i),n&&$push.schedule({title:e,body:s?s+"\n"+i:i})},u=(e,n)=>r?$prefs.setValueForKey(e,n):t?$persistentStore.write(e,n):void 0,d=e=>r?$prefs.valueForKey(e):t?$persistentStore.read(e):void 0,l=e=>(e&&(e.status?e.statusCode=e.status:e.statusCode&&(e.status=e.statusCode)),e),f=(e,i)=>{r&&("string"==typeof e&&(e={url:e}),e.method="GET",$task.fetch(e).then(e=>{i(null,l(e),e.body)},e=>i(e.error,null,null))),t&&$httpClient.get(e,(e,t,r)=>{i(e,l(t),r)}),o&&s.request(e,(e,t,r)=>{i(e,l(t),r)}),n&&("string"==typeof e&&(e={url:e}),e.header=e.headers,e.handler=function(e){let t=e.error;t&&(t=JSON.stringify(e.error));let r=e.data;"object"==typeof r&&(r=JSON.stringify(e.data)),i(t,l(e.response),r)},$http.get(e))},p=(e,i)=>{r&&("string"==typeof e&&(e={url:e}),e.method="POST",$task.fetch(e).then(e=>{i(null,l(e),e.body)},e=>i(e.error,null,null))),t&&$httpClient.post(e,(e,t,r)=>{i(e,l(t),r)}),o&&s.request.post(e,(e,t,r)=>{i(e,l(t),r)}),n&&("string"==typeof e&&(e={url:e}),e.header=e.headers,e.handler=function(e){let t=e.error;t&&(t=JSON.stringify(e.error));let r=e.data;"object"==typeof r&&(r=JSON.stringify(e.data)),i(t,l(e.response),r)},$http.post(e))},a=e=>console.log(e),y=(n={})=>{if(r)return $done(n);t&&(e?$done(n):$done())};return{isQuanX:r,isSurge:t,isJSBox:n,isRequest:e,notify:i,write:u,read:d,get:f,post:p,log:a,done:y}}
