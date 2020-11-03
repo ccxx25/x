@@ -1,6 +1,6 @@
 const $ = API("Didi", true);
 const mainURL = "https://bosp-api.xiaojukeji.com/bosp-api/lottery";
-const lid = "f2gl6vab";
+const lid = "59go4mba";
 const delay = 200;
 $.detail = "";
 
@@ -14,12 +14,12 @@ $.detail = "";
 			await draw();
 			await share();
 		}
-		await $.notify("滴滴出行-会员抽奖", "", $.detail);
+		await $.notify("滴滴出行-福利金抽奖", "", $.detail);
 	}
 })()
 	.catch((err) => {
 		$.notify(
-			"滴滴出行会员抽奖 - 出现错误",
+			"滴滴出行福利金抽奖 - 出现错误",
 			"",
 			JSON.stringify(err, Object.getOwnPropertyNames(err))
 		);
@@ -55,8 +55,8 @@ function draw() {
 		.then((resp) => {
 			let obj = JSON.parse(resp.body);
 			if (obj.code == 0) {
-				$.detail += obj.data.prize.win_content + "\n";
-				$.info(obj.data.prize.win_content);
+				$.detail += obj.data.prize.name + "\n";
+				$.info(obj.data.prize.name);
 				$.times = obj.data.userinfo.draw_times;
 			} else {
 				$.times = 0;
