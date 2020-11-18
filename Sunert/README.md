@@ -5,7 +5,7 @@
 
 ## 免责声明: 
 
-* 本仓库发布的Script项目中涉及的任何解锁和解密分析脚本，仅用于测试和学习研究，禁止用于商业用途，不能保证其合法性，准确性，完整性和有效性，请根据情况自行判断.
+* 本仓库发布的Script项目中涉及的任何解锁和解密分析脚本，仅用于测试和学习研究，不能保证其合法性，准确性，完整性和有效性，请根据情况自行判断.
 
 * Sunert对任何脚本问题概不负责，包括但不限于由任何脚本错误导致的任何损失或损害.
 
@@ -21,16 +21,11 @@
 > ***您使用或者复制了本仓库且本人制作的任何脚本，则视为`已接受`此免责声明，请仔细阅读*** 
 
 #### 开发者不易,请赏杯茶水费
-<div align=center><img width="200" height="200" src="https://gitee.com/Sunert/ProxyConfig/raw/master/QuantumultX/Rules/Images/Complimentcode.jpeg"/></div>
+<div align=center><img width="200" height="200" src="https://gitee.com/Sunert/QuantX/raw/master/Rules/Images/Complimentcode.jpeg"/></div>
 
 
 ### 特别感谢：
-
-* [@chavyleung](https://github.com/chavyleung)
-
 * [@NobyDa](https://github.com/NobyDa)
 
-* [@lxk0301](https://github.com/lxk0301)
-
-* [@id77_Github](https://github.com/id77)
+* [@chavyleung](https://github.com/chavyleung)
 
